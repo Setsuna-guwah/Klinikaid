@@ -100,7 +100,7 @@ export interface RagDocument {
   id: string;
   title: string;
   content: string;
-  embedding: number[]; // 1536 dimension array
+  embedding: number[]; // 768 dimension array
   metadata: Record<string, unknown> | null;
   created_at: string;
 }

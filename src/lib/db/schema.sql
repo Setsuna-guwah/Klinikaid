@@ -115,7 +115,7 @@ CREATE TABLE public.rag_documents (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   title text NOT NULL,
   content text NOT NULL,
-  embedding vector(1536) NOT NULL,
+  embedding vector(768) NOT NULL,
   metadata jsonb,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
