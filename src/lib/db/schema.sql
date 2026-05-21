@@ -25,6 +25,7 @@ CREATE TABLE public.profiles (
   full_name text NOT NULL,
   role text NOT NULL CHECK (role IN ('admin', 'receptionist', 'department_staff', 'medical_specialist', 'patient')),
   department text CHECK (department IN ('laboratory', 'imaging', 'ultrasound', 'ecg')),
+  is_active boolean DEFAULT true NOT NULL,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
