@@ -1,0 +1,567 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { USER_ROLES, DEPARTMENTS } from "@/lib/constants";
+import { UserRole, Department } from "@/types";
+import { 
+  Plus, 
+  Search, 
+  Edit2, 
+  UserMinus, 
+  UserPlus, 
+  Loader2, 
+  ShieldAlert,
+  KeyRound
+} from "lucide-react";
+
+// Form validation schema
+const staffFormSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters").or(z.string().length(0)), // optional on edit
+  role: z.enum(["admin", "receptionist", "department_staff", "medical_specialist"]),
+  department: z.enum(["laboratory", "imaging", "ultrasound", "ecg"]).nullable().optional(),
+});
+
+type StaffFormValues = z.infer<typeof staffFormSchema>;
+
+interface StaffMember {
+  id: string;
+  full_name: string;
+  email: string;
+  role: UserRole;
+  department: Department | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export default function StaffManagementPage() {
+  const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Sheet state
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    staffId: string;
+    staffName: string;
+    targetStatus: boolean;
+  }>({
+    open: false,
+    staffId: "",
+    staffName: "",
+    targetStatus: false,
+  });
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<StaffFormValues>({
+    resolver: zodResolver(staffFormSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      role: "receptionist",
+      department: null,
+    },
+  });
+
+  const watchRole = watch("role");
+
+  // Fetch staff list on mount
+  const fetchStaff = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/staff");
+      const json = await res.json();
+      if (json.success) {
+        setStaffList(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch staff:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStaff();
+  }, []);
+
+  // Handle open sheet for create
+  const handleCreateOpen = () => {
+    setEditingStaff(null);
+    reset({
+      fullName: "",
+      email: "",
+      password: "",
+      role: "receptionist",
+      department: null,
+    });
+    setErrorMsg("");
+    setSheetOpen(true);
+  };
+
+  // Handle open sheet for edit
+  const handleEditOpen = (staff: StaffMember) => {
+    setEditingStaff(staff);
+    reset({
+      fullName: staff.full_name,
+      email: staff.email,
+      password: "", // password blank by default on edit
+      role: staff.role as StaffFormValues["role"],
+      department: staff.department as StaffFormValues["department"],
+    });
+    setErrorMsg("");
+    setSheetOpen(true);
+  };
+
+  // Submit form
+  const onSubmit = async (values: StaffFormValues) => {
+    try {
+      setSubmitting(true);
+      setErrorMsg("");
+
+      const isEdit = !!editingStaff;
+      const url = isEdit ? `/api/admin/staff/${editingStaff.id}` : "/api/admin/staff";
+      const method = isEdit ? "PUT" : "POST";
+
+      // On edit, if password is blank, don't send it
+      const { password, ...rest } = values;
+      const payload = {
+        ...rest,
+        ...(isEdit && !password ? {} : { password }),
+      };
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Failed to save staff member");
+      }
+
+      // Success -> refresh list and close sheet
+      await fetchStaff();
+      setSheetOpen(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      setErrorMsg(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Confirm toggling active status
+  const handleStatusToggle = (staff: StaffMember, newStatus: boolean) => {
+    setConfirmDialog({
+      open: true,
+      staffId: staff.id,
+      staffName: staff.full_name,
+      targetStatus: newStatus,
+    });
+  };
+
+  // Execute active status toggle
+  const executeStatusToggle = async () => {
+    try {
+      const { staffId, targetStatus } = confirmDialog;
+      const res = await fetch(`/api/admin/staff/${staffId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: targetStatus }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Failed to update status");
+      }
+
+      // Update local state instantly
+      setStaffList((prev) =>
+        prev.map((s) => (s.id === staffId ? { ...s, is_active: targetStatus } : s))
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setConfirmDialog((prev) => ({ ...prev, open: false }));
+    }
+  };
+
+  // TEMPORARY: DEV/TESTING CONVENIENCE ONLY - PASSWORD AUTO-GENERATOR
+  // REMOVE THIS FUNCTION AND BUTTON FOR PRODUCTION
+  const generateTempPassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+    let pass = "";
+    for (let i = 0; i < 10; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setValue("password", pass);
+  };
+
+  // Filter staff list based on search
+  const filteredStaff = staffList.filter((s) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      s.full_name.toLowerCase().includes(query) ||
+      s.email.toLowerCase().includes(query) ||
+      s.role.toLowerCase().includes(query)
+    );
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Staff Management</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Create, update, and manage clinic personnel credentials and roles
+          </p>
+        </div>
+
+        <Button onClick={handleCreateOpen} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+          <Plus className="h-4 w-4" />
+          Add Staff
+        </Button>
+      </div>
+
+      {/* Main Table Card */}
+      <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div>
+            <CardTitle className="text-lg">Personnel Registry</CardTitle>
+            <CardDescription className="text-xs">
+              System access control for administrative and clinical roles
+            </CardDescription>
+          </div>
+
+          {/* Search bar */}
+          <div className="relative w-72">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search by name, email, or role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 text-xs"
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-500">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <span className="text-xs font-medium">Loading personnel registry...</span>
+            </div>
+          ) : filteredStaff.length === 0 ? (
+            <div className="text-center py-16 text-slate-500 space-y-1">
+              <p className="text-sm font-semibold">No staff members found</p>
+              <p className="text-xs text-slate-400">Try adjusting your search query</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50/75 dark:bg-slate-900/40">
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Name</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Email</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Role</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300">Department</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300 w-32">Status</TableHead>
+                  <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right w-24">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStaff.map((staff) => {
+                  const roleConfig = USER_ROLES[staff.role];
+                  const deptConfig = staff.department ? DEPARTMENTS[staff.department] : null;
+
+                  return (
+                    <TableRow 
+                      key={staff.id} 
+                      className={`transition-opacity duration-150 ${!staff.is_active ? "opacity-60 bg-slate-50/30 dark:bg-slate-950/20" : ""}`}
+                    >
+                      {/* Name */}
+                      <TableCell className="font-medium text-slate-900 dark:text-white">
+                        {staff.full_name}
+                      </TableCell>
+                      
+                      {/* Email */}
+                      <TableCell className="font-mono text-xs text-slate-600 dark:text-slate-400">
+                        {staff.email}
+                      </TableCell>
+                      
+                      {/* Role Badge */}
+                      <TableCell>
+                        <Badge className={`text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 ${roleConfig?.color || "bg-slate-200 text-slate-800"}`}>
+                          {roleConfig?.label || staff.role}
+                        </Badge>
+                      </TableCell>
+                      
+                      {/* Department Badge */}
+                      <TableCell>
+                        {deptConfig ? (
+                          <Badge className={`text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 ${deptConfig.color}`}>
+                            {deptConfig.label}
+                          </Badge>
+                        ) : (
+                          <span className="text-slate-400 font-mono text-xs">—</span>
+                        )}
+                      </TableCell>
+                      
+                      {/* Status Toggle Switch */}
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={staff.is_active}
+                            onCheckedChange={(checked) => handleStatusToggle(staff, checked)}
+                            className="scale-90"
+                          />
+                          <Badge className={`text-[9px] font-bold px-1.5 py-0 ${
+                            staff.is_active 
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/40" 
+                              : "bg-rose-100 text-rose-800 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-200/40"
+                          }`}>
+                            {staff.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      
+                      {/* Actions */}
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditOpen(staff)}
+                          className="h-8 w-8 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Creation / Editing Sheet (Drawer) */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="sm:max-w-md bg-white dark:bg-slate-900 overflow-y-auto">
+          <SheetHeader className="pb-6 border-b border-slate-100 dark:border-slate-800">
+            <SheetTitle>{editingStaff ? "Edit Staff Details" : "Add Staff Account"}</SheetTitle>
+            <SheetDescription>
+              {editingStaff 
+                ? "Update user profile. Authentication parameters are updated immediately." 
+                : "Create a new clinical or administrative staff member with role-based access."
+              }
+            </SheetDescription>
+          </SheetHeader>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 pt-6">
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg dark:bg-rose-950/20 dark:border-rose-900/40 dark:text-rose-400 flex items-start gap-2">
+                <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="fullName" className="text-xs font-semibold">Full Name</Label>
+              <Input
+                id="fullName"
+                placeholder="e.g. Dr. Maria Santos"
+                {...register("fullName")}
+                className="text-xs"
+              />
+              {errors.fullName && (
+                <p className="text-[10px] text-rose-500">{errors.fullName.message}</p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-xs font-semibold">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="maria.santos@bloodcare.com"
+                {...register("email")}
+                className="text-xs font-mono"
+              />
+              {errors.email && (
+                <p className="text-[10px] text-rose-500">{errors.email.message}</p>
+              )}
+            </div>
+
+            {/* Password (Required for create, optional/blank for edit) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-xs font-semibold">
+                  {editingStaff ? "New Password (Leave blank to keep current)" : "Temporary Password"}
+                </Label>
+                
+                {/* TEMPORARY: PASSWORD AUTO-GENERATION BUTTON FOR CONVENIENCE */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={generateTempPassword}
+                  className="h-6 text-[10px] gap-1 text-slate-500 hover:text-blue-600 px-2"
+                >
+                  <KeyRound className="h-3 w-3" />
+                  Auto-generate
+                </Button>
+              </div>
+              <Input
+                id="password"
+                type="text"
+                placeholder={editingStaff ? "••••••••" : "Minimum 6 characters"}
+                {...register("password")}
+                className="text-xs font-mono"
+              />
+              {errors.password && (
+                <p className="text-[10px] text-rose-500">{errors.password.message}</p>
+              )}
+            </div>
+
+            {/* Role Select */}
+            <div className="space-y-2">
+              <Label htmlFor="role" className="text-xs font-semibold">System Role</Label>
+              <Select
+                value={watchRole}
+                onValueChange={(val) => {
+                  setValue("role", val as StaffFormValues["role"]);
+                  if (val !== "department_staff") {
+                    setValue("department", null);
+                  }
+                }}
+              >
+                <SelectTrigger className="text-xs">
+                  <SelectValue placeholder="Select a system role" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <SelectItem value="admin" className="text-xs">Administrator</SelectItem>
+                  <SelectItem value="receptionist" className="text-xs">Receptionist</SelectItem>
+                  <SelectItem value="department_staff" className="text-xs">Department Staff</SelectItem>
+                  <SelectItem value="medical_specialist" className="text-xs">Medical Specialist</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Department (Shown conditionally if role is department_staff) */}
+            {watchRole === "department_staff" && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                <Label htmlFor="department" className="text-xs font-semibold">Clinical Department</Label>
+                <Select
+                  value={watch("department") || undefined}
+                  onValueChange={(val) => setValue("department", val as StaffFormValues["department"])}
+                >
+                  <SelectTrigger className="text-xs">
+                    <SelectValue placeholder="Select clinical department" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                    <SelectItem value="laboratory" className="text-xs">Laboratory</SelectItem>
+                    <SelectItem value="imaging" className="text-xs">Imaging (X-Ray)</SelectItem>
+                    <SelectItem value="ultrasound" className="text-xs">Ultrasound</SelectItem>
+                    <SelectItem value="ecg" className="text-xs">ECG</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.department && (
+                  <p className="text-[10px] text-rose-500">{errors.department.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving Staff Member...
+                </>
+              ) : editingStaff ? (
+                "Update Staff Member"
+              ) : (
+                "Create Staff Member"
+              )}
+            </Button>
+          </form>
+        </SheetContent>
+      </Sheet>
+
+      {/* Confirmation Dialog for Status Toggle */}
+      <Dialog 
+        open={confirmDialog.open} 
+        onOpenChange={(isOpen) => setConfirmDialog((prev) => ({ ...prev, open: isOpen }))}
+      >
+        <DialogContent className="bg-white dark:bg-slate-900 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-slate-950 dark:text-white flex items-center gap-2">
+              {confirmDialog.targetStatus ? <UserPlus className="h-5 w-5 text-emerald-500" /> : <UserMinus className="h-5 w-5 text-rose-500" />}
+              {confirmDialog.targetStatus ? "Activate Account?" : "Deactivate Account?"}
+            </DialogTitle>
+            <DialogDescription className="text-xs pt-1">
+              {confirmDialog.targetStatus
+                ? `Are you sure you want to restore active access for ${confirmDialog.staffName}? They will be able to log in immediately.`
+                : `Are you sure you want to suspend access for ${confirmDialog.staffName}? All active login sessions will be immediately terminated.`
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+              className="text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant={confirmDialog.targetStatus ? "default" : "destructive"}
+              onClick={executeStatusToggle}
+              className="text-xs font-semibold"
+            >
+              {confirmDialog.targetStatus ? "Activate" : "Deactivate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

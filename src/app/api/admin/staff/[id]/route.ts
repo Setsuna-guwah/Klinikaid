@@ -1,0 +1,124 @@
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireRole } from "@/lib/auth/helpers";
+import { errorResponse, successResponse } from "@/lib/api-response";
+import { logEvent } from "@/lib/logger";
+
+export const dynamic = "force-dynamic";
+
+// PUT: update staff details (full name, email, role, department)
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const adminProfile = await requireRole(["admin"]);
+    const { id } = params;
+    const body = await request.json();
+    const { email, fullName, role, department } = body;
+
+    if (!email || !fullName || !role) {
+      return errorResponse("Missing required fields: email, fullName, role", 400);
+    }
+
+    const adminClient = createAdminClient();
+    const supabase = createClient();
+
+    // 1. Update Auth user (email & metadata)
+    const { error: authError } = await adminClient.auth.admin.updateUserById(id, {
+      email,
+      user_metadata: {
+        full_name: fullName,
+        role,
+        department: role === "department_staff" ? department : null,
+      },
+    });
+
+    if (authError) {
+      throw authError;
+    }
+
+    // 2. Update profiles database record
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        full_name: fullName,
+        role,
+        department: role === "department_staff" ? department : null,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    // 3. Log the update event
+    await logEvent(
+      supabase,
+      adminProfile.id,
+      "STAFF_UPDATED",
+      `Staff user updated: ${fullName} (${email}) as ${role}`,
+      null,
+      { target_user_id: id, role, department }
+    );
+
+    return successResponse({ ...profile, email }, "Staff member updated successfully");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return errorResponse("Failed to update staff member", 500, message);
+  }
+}
+
+// PATCH: toggle staff active status (activate / deactivate)
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const adminProfile = await requireRole(["admin"]);
+    const { id } = params;
+    const body = await request.json();
+    const { isActive } = body;
+
+    if (isActive === undefined) {
+      return errorResponse("Missing isActive boolean in request body", 400);
+    }
+
+    const supabase = createClient();
+    const adminClient = createAdminClient();
+
+    // 1. Update active status in profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        is_active: isActive,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    // 2. Revoke sessions globally if deactivating
+    if (!isActive) {
+      const { error: authError } = await adminClient.auth.admin.signOut(id);
+      if (authError) {
+        console.error("Warning: failed to revoke session for deactivated user:", authError);
+      }
+    }
+
+    // 3. Log the active status toggle
+    const eventType = isActive ? "STAFF_ACTIVATED" : "STAFF_DEACTIVATED";
+    await logEvent(
+      supabase,
+      adminProfile.id,
+      eventType,
+      `Staff user ${isActive ? "activated" : "deactivated"}: ${profile.full_name} (${profile.role})`,
+      null,
+      { target_user_id: id }
+    );
+
+    return successResponse(profile, `Staff member ${isActive ? "activated" : "deactivated"} successfully`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return errorResponse("Failed to update staff status", 500, message);
+  }
+}

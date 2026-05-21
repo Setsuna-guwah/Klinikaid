@@ -1,0 +1,65 @@
+"use client";
+
+import React from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { DEPARTMENTS } from "@/lib/constants";
+
+interface ChartData {
+  department: string;
+  count: number;
+}
+
+export default function DepartmentChart({ data }: { data: ChartData[] }) {
+  // Map internal department keys to labels and colors
+  const chartData = data.map((item) => {
+    const info = DEPARTMENTS[item.department as keyof typeof DEPARTMENTS];
+    return {
+      name: info ? info.label : item.department,
+      count: item.count,
+      color: item.department === "laboratory"
+        ? "#10b981" // emerald-500
+        : item.department === "imaging"
+        ? "#f59e0b" // amber-500
+        : item.department === "ultrasound"
+        ? "#14b8a6" // teal-500
+        : "#f43f5e", // rose-500 (ecg)
+    };
+  });
+
+  return (
+    <div className="w-full h-[300px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-slate-100 dark:stroke-slate-800" />
+          <XAxis 
+            dataKey="name" 
+            tick={{ fill: "#64748b", fontSize: 11 }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis 
+            tick={{ fill: "#64748b", fontSize: 11 }}
+            allowDecimals={false}
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "rgba(255, 255, 255, 0.96)",
+              border: "1px solid #e2e8f0",
+              borderRadius: "0.5rem",
+              fontSize: "0.75rem",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            }}
+            labelStyle={{ fontWeight: "600", color: "#0f172a" }}
+          />
+          <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={45}>
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
