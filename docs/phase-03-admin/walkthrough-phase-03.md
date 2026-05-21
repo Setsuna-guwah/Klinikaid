@@ -22,15 +22,24 @@ Summary of achievements and verification steps for Phase 3.
 ### Automated Build Verification
 - Build compiles successfully via `npm run build` with zero warnings or errors.
 
-### Manual Verification Steps
-1. **Admin Dashboard Live Update**:
-   - Access `/admin/dashboard` as admin.
-   - Confirm charts, KPIs, and audit log items display in real-time.
-2. **Staff Creation & Credentials**:
-   - Navigate to `/admin/staff`.
-   - Click "Add Staff", type credentials, click "Auto-generate" to populate password, and submit.
-   - Verify receptionist registration and log creation.
-3. **Deactivation Session Termination**:
-   - Toggle switch on a staff row to disable.
-   - Accept warnings in the Dialog popup.
-   - Row dims immediately. The user session is invalidated globally on the Supabase backend.
+### Automated End-to-End Verification (Puppeteer)
+We successfully performed the following verification steps using automated Puppeteer scripts:
+1. **Admin Login**:
+   - Navigated to `/login`, filled credentials `admin@test.com` / `"1234567"`, and logged in.
+2. **Dashboard Load**:
+   - Verified that all dynamic widgets, department bar charts, and system audit logs load and render successfully.
+3. **Ref Forwarding Fix**:
+   - Identified and fixed a bug in `src/components/ui/input.tsx` where ref forwarding was missing.
+   - Wrapping the `Input` component in `React.forwardRef` allowed correct integration with React Hook Form, resolving the client-side "Invalid input" validation errors.
+4. **Staff Creation**:
+   - Opened the "+ Add Staff" drawer.
+   - Created a receptionist account `reception_test@example.com` / `password123` ("Test Receptionist").
+   - Verified that the new staff member was added to the personnel registry.
+5. **Staff Deactivation**:
+   - Toggled the status switch for "Test Receptionist".
+   - Confirmed the deactivation popup dialog.
+   - Verified that the row dimmed instantly and its status changed to "Inactive".
+6. **Enforced Sign-Out & Blocked Login**:
+   - Signed out of the administrator account.
+   - Attempted to log in using the newly deactivated `reception_test@example.com` credentials.
+   - Verified that login was blocked and the UI displayed: `"Your account is deactivated. Please contact your administrator."`
