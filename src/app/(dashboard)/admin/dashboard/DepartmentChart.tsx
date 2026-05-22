@@ -2,7 +2,7 @@
 
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { DEPARTMENTS } from "@/lib/constants";
+import { DEPARTMENTS, CHART_COLORS } from "@/lib/constants";
 
 interface ChartData {
   department: string;
@@ -17,14 +17,15 @@ export default function DepartmentChart({ data }: { data: ChartData[] }) {
       name: info ? info.label : item.department,
       count: item.count,
       color: item.department === "laboratory"
-        ? "#10b981" // emerald-500
+        ? CHART_COLORS.laboratory
         : item.department === "imaging"
-        ? "#f59e0b" // amber-500
+        ? CHART_COLORS.xray
         : item.department === "ultrasound"
-        ? "#14b8a6" // teal-500
-        : "#f43f5e", // rose-500 (ecg)
+        ? CHART_COLORS.ultrasound
+        : CHART_COLORS.ecg,
     };
   });
+
 
   return (
     <div className="w-full h-[300px]">
