@@ -1,0 +1,231 @@
+"use server";
+
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { logEvent } from "@/lib/logger";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { revalidatePath } from "next/cache";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+
+type EmbedContentFn = (req: {
+  content: { role: string; parts: Array<{ text: string }> };
+  outputDimensionality: number;
+}) => Promise<{ embedding: { values: number[] } }>;
+
+/**
+ * Splits text into chunks of specified size and overlap.
+ */
+function chunkText(text: string, chunkSize = 1000, overlap = 200): string[] {
+  const chunks: string[] = [];
+  let i = 0;
+  while (i < text.length) {
+    chunks.push(text.slice(i, i + chunkSize));
+    i += chunkSize - overlap;
+  }
+  return chunks.length > 0 ? chunks : [text];
+}
+
+/**
+ * Validates that current user is an admin.
+ */
+async function verifyAdmin() {
+  const supabase = createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    throw new Error("Unauthorized: Please log in.");
+  }
+  
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+    
+  if (profileError || !profile || profile.role !== "admin") {
+    throw new Error("Forbidden: Access denied.");
+  }
+  
+  return user;
+}
+
+/**
+ * Action to upload plain text and chunk/embed it.
+ */
+export async function uploadRagTextAction(title: string, content: string) {
+  try {
+    const user = await verifyAdmin();
+    
+    if (!title || !content) {
+      return { success: false, error: "Title and content are required." };
+    }
+    
+    const documentId = crypto.randomUUID();
+    const chunks = chunkText(content);
+    const adminSupabase = createAdminClient();
+    const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+    
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const embedResult = await (embeddingModel.embedContent as unknown as EmbedContentFn)({
+        content: { role: "user", parts: [{ text: chunk }] },
+        outputDimensionality: 768,
+      });
+      const embedding = embedResult.embedding.values;
+      
+      const { error } = await adminSupabase.from("rag_documents").insert({
+        title,
+        content: chunk,
+        embedding,
+        metadata: {
+          document_id: documentId,
+          chunk_index: i,
+          total_chunks: chunks.length,
+          source_type: "text",
+        }
+      });
+      
+      if (error) throw error;
+    }
+    
+    await logEvent(
+      adminSupabase,
+      user.id,
+      "RAG_DOCUMENT_UPLOADED",
+      `Uploaded text document "${title}" (${chunks.length} chunks)`,
+      null,
+      { document_id: documentId, title, type: "text" }
+    );
+    
+    revalidatePath("/admin/rag");
+    return { success: true };
+  } catch (err) {
+    console.error("Text upload error:", err);
+    const message = err instanceof Error ? err.message : "Failed to upload text.";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Action to upload a PDF, extract its text via Gemini 1.5 Flash, chunk, and embed it.
+ */
+export async function uploadRagPdfAction(formData: FormData) {
+  try {
+    const user = await verifyAdmin();
+    const file = formData.get("file") as File;
+    if (!file) {
+      return { success: false, error: "No file provided." };
+    }
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Extract text using Gemini 1.5 Flash
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          data: buffer.toString("base64"),
+          mimeType: "application/pdf"
+        }
+      },
+      "Extract all clinical, medical, administrative, and schedule text verbatim from this document. Do not summarize, alter, or omit any details. Format it as clean markdown."
+    ]);
+    
+    const extractedText = result.response.text();
+    if (!extractedText || extractedText.trim() === "") {
+      return { success: false, error: "No text could be extracted from this PDF." };
+    }
+    
+    const documentId = crypto.randomUUID();
+    const chunks = chunkText(extractedText);
+    const adminSupabase = createAdminClient();
+    const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+    
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const embedResult = await (embeddingModel.embedContent as unknown as EmbedContentFn)({
+        content: { role: "user", parts: [{ text: chunk }] },
+        outputDimensionality: 768,
+      });
+      const embedding = embedResult.embedding.values;
+      
+      const { error } = await adminSupabase.from("rag_documents").insert({
+        title: file.name,
+        content: chunk,
+        embedding,
+        metadata: {
+          document_id: documentId,
+          chunk_index: i,
+          total_chunks: chunks.length,
+          source_type: "pdf",
+        }
+      });
+      
+      if (error) throw error;
+    }
+    
+    await logEvent(
+      adminSupabase,
+      user.id,
+      "RAG_DOCUMENT_UPLOADED",
+      `Uploaded PDF document "${file.name}" (${chunks.length} chunks)`,
+      null,
+      { document_id: documentId, title: file.name, type: "pdf" }
+    );
+    
+    revalidatePath("/admin/rag");
+    return { success: true };
+  } catch (err) {
+    console.error("PDF upload error:", err);
+    const message = err instanceof Error ? err.message : "Failed to process PDF.";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Action to delete a RAG document and all its chunks.
+ */
+export async function deleteRagDocumentAction(documentId: string) {
+  try {
+    const user = await verifyAdmin();
+    if (!documentId) {
+      return { success: false, error: "Document ID is required." };
+    }
+    
+    const adminSupabase = createAdminClient();
+    
+    // Retrieve title of document first
+    const { data: chunks, error: selectError } = await adminSupabase
+      .from("rag_documents")
+      .select("title")
+      .eq("metadata->>document_id", documentId)
+      .limit(1);
+      
+    if (selectError) throw selectError;
+    const docTitle = chunks && chunks.length > 0 ? chunks[0].title : "Unknown Document";
+    
+    const { error: deleteError } = await adminSupabase
+      .from("rag_documents")
+      .delete()
+      .eq("metadata->>document_id", documentId);
+      
+    if (deleteError) throw deleteError;
+    
+    await logEvent(
+      adminSupabase,
+      user.id,
+      "RAG_DOCUMENT_DELETED",
+      `Deleted RAG document "${docTitle}"`,
+      null,
+      { document_id: documentId, title: docTitle }
+    );
+    
+    revalidatePath("/admin/rag");
+    return { success: true };
+  } catch (err) {
+    console.error("Delete RAG document error:", err);
+    const message = err instanceof Error ? err.message : "Failed to delete document.";
+    return { success: false, error: message };
+  }
+}
