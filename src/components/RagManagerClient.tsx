@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -71,6 +72,7 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
   const [isUploadingText, startUploadText] = useTransition();
   const [isUploadingPdf, startUploadPdf] = useTransition();
   const [isDeleting, startDelete] = useTransition();
+  const router = useRouter();
 
   // Search Filter
   const filteredDocuments = documents.filter((doc) =>
@@ -90,30 +92,33 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
         setIsTextDialogOpen(false);
         setTextTitle("");
         setTextContent("");
-        window.location.reload();
+        router.refresh();
       } else {
         toast.error(result.error || "Failed to upload document.");
       }
     });
   };
 
-  const handleUploadPdf = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pdfFile) {
+  const handleUploadPdf = async (formData: FormData) => {
+    const file = formData.get("file") as File;
+    if (!file || file.size === 0) {
       toast.error("Please select a PDF file.");
       return;
     }
 
-    startUploadPdf(async () => {
-      const formData = new FormData();
-      formData.append("file", pdfFile);
+    // Client-side 10MB limit check
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size exceeds the 10MB limit.");
+      return;
+    }
 
+    startUploadPdf(async () => {
       const result = await uploadRagPdfAction(formData);
       if (result.success) {
         toast.success("PDF extracted, chunked, and indexed successfully!");
         setIsPdfDialogOpen(false);
         setPdfFile(null);
-        window.location.reload();
+        router.refresh();
       } else {
         toast.error(result.error || "Failed to process PDF.");
       }
@@ -298,7 +303,7 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
       {/* dialog 2: Upload PDF */}
       <Dialog open={isPdfDialogOpen} onOpenChange={(open) => !isUploadingPdf && setIsPdfDialogOpen(open)}>
         <DialogContent className="sm:max-w-[500px] border-slate-200 dark:border-slate-800">
-          <form onSubmit={handleUploadPdf}>
+          <form action={handleUploadPdf}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5 text-teal-700 dark:text-teal-500" />
@@ -312,6 +317,7 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
               <Upload className="h-10 w-10 text-slate-400 mb-3" />
               <input
                 id="pdf-file-input"
+                name="file"
                 type="file"
                 accept=".pdf"
                 className="hidden"
@@ -368,7 +374,7 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
                   Deleting...
                 </>
               ) : (
-                "Delete Permanent"
+                "Delete Permanently"
               )}
             </Button>
           </DialogFooter>
