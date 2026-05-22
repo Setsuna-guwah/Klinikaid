@@ -99,20 +99,23 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
     });
   };
 
-  const handleUploadPdf = async (formData: FormData) => {
-    const file = formData.get("file") as File;
-    if (!file || file.size === 0) {
+  const handleUploadPdf = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pdfFile) {
       toast.error("Please select a PDF file.");
       return;
     }
 
     // Client-side 10MB limit check
-    if (file.size > 10 * 1024 * 1024) {
+    if (pdfFile.size > 10 * 1024 * 1024) {
       toast.error("File size exceeds the 10MB limit.");
       return;
     }
 
     startUploadPdf(async () => {
+      const formData = new FormData();
+      formData.append("file", pdfFile);
+
       const result = await uploadRagPdfAction(formData);
       if (result.success) {
         toast.success("PDF extracted, chunked, and indexed successfully!");
@@ -303,7 +306,7 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
       {/* dialog 2: Upload PDF */}
       <Dialog open={isPdfDialogOpen} onOpenChange={(open) => !isUploadingPdf && setIsPdfDialogOpen(open)}>
         <DialogContent className="sm:max-w-[500px] border-slate-200 dark:border-slate-800">
-          <form action={handleUploadPdf}>
+          <form onSubmit={handleUploadPdf}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5 text-teal-700 dark:text-teal-500" />
