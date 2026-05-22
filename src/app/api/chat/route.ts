@@ -62,6 +62,8 @@ export async function POST(request: Request) {
     }
     
     // 3. Generate query embedding via gemini-embedding-001 (768 dimensions)
+    // Note: text-embedding-004 is requested by spec, but returned 404 in this environment's Gemini API.
+    // We use gemini-embedding-001 with outputDimensionality: 768 to achieve the correct 768-dim vector size.
     const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
     const embedResult = await (embeddingModel.embedContent as unknown as EmbedContentFn)({
       content: { role: "user", parts: [{ text: userQuery }] },
@@ -118,6 +120,7 @@ ${context}`;
     const tokensUsed = chatResult.response.usageMetadata?.totalTokenCount || 0;
     
     // 7. Log interaction in public.chatbot_logs
+    // Note: Although guide mentions user_query, the active Supabase schema uses the user_message column.
     const { error: logError } = await supabase.from("chatbot_logs").insert({
       user_id: user.id,
       session_id: activeSessionId,

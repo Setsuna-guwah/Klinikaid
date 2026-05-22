@@ -63,6 +63,9 @@ export async function uploadRagTextAction(title: string, content: string) {
     const documentId = crypto.randomUUID();
     const chunks = chunkText(content);
     const adminSupabase = createAdminClient();
+    
+    // Note: text-embedding-004 is requested by spec, but returned 404 in this environment's Gemini API.
+    // We use gemini-embedding-001 with outputDimensionality: 768 to achieve the correct 768-dim vector size.
     const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
     
     for (let i = 0; i < chunks.length; i++) {
@@ -113,8 +116,18 @@ export async function uploadRagPdfAction(formData: FormData) {
   try {
     const user = await verifyAdmin();
     const file = formData.get("file") as File;
-    if (!file) {
+    if (!file || file.size === 0) {
       return { success: false, error: "No file provided." };
+    }
+    
+    // Enforce 10MB maximum file size
+    if (file.size > 10 * 1024 * 1024) {
+      return { success: false, error: "File size exceeds the 10MB limit." };
+    }
+    
+    // Validate MIME type
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      return { success: false, error: "Only PDF files are accepted." };
     }
     
     const arrayBuffer = await file.arrayBuffer();
@@ -140,6 +153,9 @@ export async function uploadRagPdfAction(formData: FormData) {
     const documentId = crypto.randomUUID();
     const chunks = chunkText(extractedText);
     const adminSupabase = createAdminClient();
+    
+    // Note: text-embedding-004 is requested by spec, but returned 404 in this environment's Gemini API.
+    // We use gemini-embedding-001 with outputDimensionality: 768 to achieve the correct 768-dim vector size.
     const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
     
     for (let i = 0; i < chunks.length; i++) {
