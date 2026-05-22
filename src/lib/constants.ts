@@ -105,3 +105,16 @@ export const LAB_REFERENCE_RANGES: LabReferenceRange[] = [
     description: "Total lipid marker"
   }
 ];
+
+export const CHART_COLORS = {
+  laboratory: '#0D7C66',  // teal — primary brand color
+  xray:       '#7C3AED',  // purple
+  ultrasound: '#0891B2',  // cyan
+  ecg:        '#EA580C',  // orange
+  flagged:    '#DC2626',  // red — out-of-range values
+  normal:     '#16A34A',  // green — within normal range
+  normalBand: '#16A34A',  // green fill for reference area (use with low opacity)
+  primary:    '#0D7C66',  // default line/bar color
+  muted:      '#94A3B8',  // gray — secondary data
+};
+

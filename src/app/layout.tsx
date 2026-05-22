@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: "Internal clinic management web portal for Bloodcare Medical Laboratory",
 };
 
+import { Toaster } from "@/components/ui/sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,7 +24,9 @@ export default function RootLayout({
     <html lang="en" className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)} style={{ colorScheme: 'light' }}>
       <body className="min-h-screen bg-background font-sans antialiased">
         {children}
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );
 }
+
