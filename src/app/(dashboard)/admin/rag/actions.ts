@@ -146,8 +146,8 @@ export async function uploadRagPdfAction(formData: FormData) {
     ]);
     
     const extractedText = result.response.text();
-    if (!extractedText || extractedText.trim() === "") {
-      return { success: false, error: "No text could be extracted from this PDF." };
+    if (!extractedText || extractedText.trim().length < 50) {
+      return { success: false, error: "The extracted text is too short or empty. Please ensure the PDF has a readable text layer." };
     }
     
     const documentId = crypto.randomUUID();
