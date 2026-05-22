@@ -99,14 +99,18 @@ src/
           DepartmentChart.tsx      ← "use client" chart component pattern
         staff/
           page.tsx
+        rag/
+          page.tsx
+        logs/
+          page.tsx                 ← Phase 8: 3-tab logs dashboard
       reception/
-        dashboard/page.tsx         ← stub, will be upgraded in Phase 4
+        dashboard/page.tsx
       department/
-        dashboard/page.tsx         ← stub, will be upgraded in Phase 5
+        dashboard/page.tsx
       specialist/
-        dashboard/page.tsx         ← stub, will be upgraded in Phase 6
+        dashboard/page.tsx
       patient/
-        dashboard/page.tsx         ← stub, will be upgraded in Phase 9
+        dashboard/page.tsx
     403/
       page.tsx
     api/
@@ -114,8 +118,30 @@ src/
         dashboard-stats/route.ts
         staff/route.ts
         staff/[id]/route.ts
+        rag/
+          upload/route.ts
+          documents/route.ts
+          documents/[id]/route.ts
+        logs/
+          system/route.ts          ← Phase 8: paginated system_logs with filters
+          chatbot/route.ts         ← Phase 8: paginated chatbot_logs + today stats
+          api-costs/route.ts       ← Phase 8: daily token aggregates for cost chart
+      chat/route.ts
+      reception/
+        documents/route.ts
+        documents/[id]/approve/route.ts
+        documents/[id]/reject/route.ts
+        triage/route.ts
+      department/
+        records/route.ts
+        queue/route.ts
+      specialist/
+        patients/route.ts
+        patients/[patientId]/metrics/route.ts
+        patients/[patientId]/analytics/route.ts
   components/
     sidebar.tsx
+    LogEventBadge.tsx              ← Phase 8: maps event_type strings to colored badges
     ui/                            ← shadcn components
       input.tsx                    ← ref forwarding fixed in Phase 2
       table.tsx
@@ -190,6 +216,49 @@ Phase 5 (dept queue display) and Phase 9 (patient status tracker) must use this 
 - `patient_queue` has NO `queue_number` column — stored in `triage_notes` JSON
 - `patient_queue.department` confirmed value: `'imaging'` (not `'xray'` — live insert test verified this in Phase 4)
 
+### System Logs: Event Types & Badge Colors (established in Phase 8)
+All valid `system_logs.event_type` string values and their corresponding badge colors.
+`LogEventBadge.tsx` is the single source of truth — import it everywhere event types are displayed.
+
+| event_type | Badge Color |
+|---|---|
+| `LOGIN_SUCCESS` | green |
+| `LOGIN_FAILED` | red |
+| `LOGOUT` | gray |
+| `UNAUTHORIZED_ACCESS_ATTEMPT` | dark red |
+| `DOCUMENT_APPROVED` | teal |
+| `DOCUMENT_REJECTED` | orange |
+| `TRIAGE_COMPLETED` | blue |
+| `STAFF_CREATED` | purple |
+| `STAFF_DEACTIVATED` | red |
+| `RECORD_ENTERED` | blue |
+| `RAG_UPLOAD` | purple |
+| `PAGE_ACCESS` | light gray |
+| `DOCUMENT_SUBMITTED` | teal |
+
+### Chatbot Logs: Token Cost Estimation (established in Phase 8)
+- Cost rate: **0.0000007 PHP per token** (configurable — store as a named constant in `constants.ts`)
+- `estimated_cost = tokens_used * COST_PER_TOKEN_PHP`
+- `FREE_TIER_TOKEN_LIMIT` env var controls the ReferenceLine threshold on the cost tracker AreaChart
+- Daily aggregate query pattern for cost tracker chart:
+  ```sql
+  SELECT DATE(queried_at) AS date,
+         SUM(tokens_used)  AS total_tokens
+  FROM   chatbot_logs
+  GROUP  BY DATE(queried_at)
+  ORDER  BY date ASC
+  LIMIT  30
+  ```
+- Weekly summary table derives from the same aggregates: group the 30 daily rows into 4-week buckets client-side
+- "Today's stats" summary bar on the Chatbot Audit tab queries:
+  ```sql
+  SELECT COUNT(*)          AS queries,
+         SUM(tokens_used)  AS tokens
+  FROM   chatbot_logs
+  WHERE  DATE(queried_at) = CURRENT_DATE
+  ```
+  Estimated cost PHP = `tokens * COST_PER_TOKEN_PHP` — computed in the API route, not the client
+
 ---
 
 ## Standing Code Rules (enforced every phase)
@@ -204,7 +273,7 @@ Phase 5 (dept queue display) and Phase 9 (patient status tracker) must use this 
    - `[feature]/page.tsx` → server component, handles auth check + initial data fetch
    - `[Feature]Client.tsx` → `"use client"`, receives data as props, handles all interaction
    - Examples so far: `DepartmentChart.tsx`, `ReceptionKanban.tsx`, `DocumentApprovalClient.tsx`
-   - Phases 5, 6, and 9 must follow this same split pattern
+   - Phases 5, 6, 8, and 9 must follow this same split pattern
 8. **`useSearchParams()` always in `<Suspense>`** — Required in this project to avoid Next.js build warnings.
 9. **UTC+8 for all displayed timestamps** — Use `date-fns-tz` with `Asia/Manila` timezone.
 10. **Supabase Realtime payloads don't include joins** — Realtime emits only the changed row. Client must patch joined data (e.g. patient name) from already-loaded state or trigger a targeted refetch. Never assume Realtime gives the full joined object.
@@ -220,9 +289,9 @@ Phase 5 (dept queue display) and Phase 9 (patient status tracker) must use this 
 | Phase 3 — Admin Dashboard & Staff Mgmt | ✅ Complete | Stats API, staff CRUD, Recharts dept chart, Puppeteer verified |
 | Phase 4 — Reception Module | ✅ Complete | Kanban, DocumentApprovalClient, TriageModal, Realtime, reception dashboard upgraded |
 | Phase 5 — Department Staff Module | ✅ Complete | Relational records, auto-flag blur validation, dynamic dept forms, build 28/28 |
-| Phase 6 — Specialist Analytics | 🔲 Next | Patient search, longitudinal Recharts charts |
-| Phase 7 — RAG Knowledge Base | 🔲 Upcoming | PDF upload, Gemini embedding, chatbot endpoint |
-| Phase 8 — System Logs | 🔲 Upcoming | Event log viewer, chatbot audit, cost tracker |
+| Phase 6 — Specialist Analytics | ✅ Complete | Patient search, longitudinal Recharts charts, reference range band, flagged data points |
+| Phase 7 — RAG Knowledge Base | ✅ Complete | PDF upload, Gemini embedding (768d), chunk streaming, chatbot RAG endpoint, RagChunkViewer |
+| Phase 8 — System Logs | 🔲 Current | Event log viewer, chatbot audit, API cost tracker, LogEventBadge component |
 | Phase 9 — Patient-Facing Pages | 🔲 Upcoming | Register, dashboard, chatbot UI, doc submit, status tracker |
 | Phase 10 — Polish & Integration | 🔲 Upcoming | Error boundaries, loading states, final integration |
 | Phase 11 — ISO 25010 Eval Prep | 🔲 Upcoming | Test cases, performance tools, UAT scorecard |
@@ -236,46 +305,3 @@ come from this shared constant. Every phase that builds a chart uses these — n
 hardcoded hex strings inside chart components.
 
 ```typescript
-export const CHART_COLORS = {
-  laboratory: '#0D7C66',  // teal — primary brand color
-  xray:       '#7C3AED',  // purple
-  ultrasound: '#0891B2',  // cyan
-  ecg:        '#EA580C',  // orange
-  flagged:    '#DC2626',  // red — out-of-range values
-  normal:     '#16A34A',  // green — within normal range
-  normalBand: '#16A34A',  // green fill for reference area (use with low opacity)
-  primary:    '#0D7C66',  // default line/bar color
-  muted:      '#94A3B8',  // gray — secondary data
-}
-```
-
-Phases that use charts: 3 (done), 5 (auto-flag display), 6 (analytics dashboard), 8 (cost tracker).
-All must import from `CHART_COLORS`. If Phase 3's DepartmentChart.tsx has hardcoded hex values,
-update them to use this constant when convenient — not urgently, but before Phase 11 evaluation.
-
----
-
-## Things to Remove Before Defense
-- Auto-generate password button in staff creation form (labeled "Development Convenience")
-
----
-
-## Environment Variables
-```
-DATABASE_URL                      — Direct PostgreSQL connection string. Used by Antigravity to run migrations automatically via script. Never printed to chat.
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY         ← server-only, never in "use client" files
-GEMINI_API_KEY                    ← only AI key, handles LLM + embeddings
-RESEND_API_KEY                    ← optional
-NEXT_PUBLIC_CLINIC_NAME           = "Bloodcare Medical Laboratory"
-NEXT_PUBLIC_CLINIC_ADDRESS        = "Burgos, Rodriguez, Rizal"
-FREE_TIER_TOKEN_LIMIT             = 10000000
-CHAT_RATE_LIMIT_PER_HOUR         = 20
-```
-
----
-
-## Current Phase
-**Currently building: Phase 6 — Specialist Analytics**
-

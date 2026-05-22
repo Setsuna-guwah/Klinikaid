@@ -86,13 +86,20 @@ phaseFiles.forEach(file => {
 // 3. Get Git Diff
 let gitDiff = '';
 try {
-  // Diff unstaged + staged changes, excluding documentation/scratch paths
-  const diffCommand = 'git diff HEAD -- . ":!docs" ":!scratch" ":!skills" ":!package-lock.json"';
-  gitDiff = execSync(diffCommand, { encoding: 'utf8' }).trim();
-  if (!gitDiff) {
-    console.log('No uncommitted changes detected. Diffing against HEAD~1...');
-    const fallbackDiff = 'git diff HEAD~1 -- . ":!docs" ":!scratch" ":!skills" ":!package-lock.json"';
-    gitDiff = execSync(fallbackDiff, { encoding: 'utf8' }).trim();
+  const baseCommit = process.argv[3];
+  if (baseCommit) {
+    console.log(`Diffing against specified base commit: ${baseCommit}...`);
+    const diffCommand = `git diff ${baseCommit} -- . ":!docs" ":!scratch" ":!skills" ":!package-lock.json"`;
+    gitDiff = execSync(diffCommand, { encoding: 'utf8' }).trim();
+  } else {
+    // Diff unstaged + staged changes, excluding documentation/scratch paths
+    const diffCommand = 'git diff HEAD -- . ":!docs" ":!scratch" ":!skills" ":!package-lock.json"';
+    gitDiff = execSync(diffCommand, { encoding: 'utf8' }).trim();
+    if (!gitDiff) {
+      console.log('No uncommitted changes detected. Diffing against HEAD~1...');
+      const fallbackDiff = 'git diff HEAD~1 -- . ":!docs" ":!scratch" ":!skills" ":!package-lock.json"';
+      gitDiff = execSync(fallbackDiff, { encoding: 'utf8' }).trim();
+    }
   }
 } catch (err) {
   console.warn('Warning: Failed to run git diff. Will proceed without code diff.');
