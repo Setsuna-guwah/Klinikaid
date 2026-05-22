@@ -65,8 +65,12 @@ export interface DepartmentRecord {
   recorder_id: string;
   department: Department;
   test_type: string;
-  test_results: Record<string, unknown>; // Flexible JSON payload for results
-  reference_range_status: ReferenceRangeStatus;
+  test_name: string;
+  test_value: string;
+  unit: string | null;
+  reference_range_min: number | null;
+  reference_range_max: number | null;
+  is_flagged: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;
