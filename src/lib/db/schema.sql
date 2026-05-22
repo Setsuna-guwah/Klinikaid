@@ -81,12 +81,17 @@ CREATE TABLE public.department_records (
   recorder_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL NOT NULL,
   department text NOT NULL CHECK (department IN ('laboratory', 'imaging', 'ultrasound', 'ecg')),
   test_type text NOT NULL,
-  test_results jsonb NOT NULL,
-  reference_range_status text NOT NULL DEFAULT 'normal' CHECK (reference_range_status IN ('normal', 'critical_high', 'critical_low', 'inconclusive')),
+  test_name text NOT NULL,
+  test_value text NOT NULL,
+  unit text,
+  reference_range_min numeric,
+  reference_range_max numeric,
+  is_flagged boolean NOT NULL DEFAULT false,
   notes text,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
 
 -- 6. System Logs Table (Audit trail)
 CREATE TABLE public.system_logs (
