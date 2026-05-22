@@ -101,20 +101,21 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
 
   const handleUploadPdf = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pdfFile) {
+    const file = pdfFile; // capture snapshot
+    if (!file) {
       toast.error("Please select a PDF file.");
       return;
     }
 
     // Client-side 10MB limit check
-    if (pdfFile.size > 10 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       toast.error("File size exceeds the 10MB limit.");
       return;
     }
 
     startUploadPdf(async () => {
       const formData = new FormData();
-      formData.append("file", pdfFile);
+      formData.append("file", file);
 
       const result = await uploadRagPdfAction(formData);
       if (result.success) {
