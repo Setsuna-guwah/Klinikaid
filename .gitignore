@@ -41,3 +41,8 @@ next-env.d.ts
 # Context docs (AI/dev reference only, not project code)
 MASTER_CONTEXT.md
 KlinikAid_Web_Implementation_Guide_v2.md
+*implementation-plan*.md
+*implementation_plan*.md
+*task*.md
+*walkthrough*.md
+claude-review.md

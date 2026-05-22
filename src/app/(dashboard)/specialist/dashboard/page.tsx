@@ -1,55 +1,152 @@
 import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { UserCheck, LineChart } from "lucide-react";
+import { requireRole } from "@/lib/auth/helpers";
+import { createClient } from "@/lib/supabase/server";
+import SpecialistDashboardClient from "@/components/SpecialistDashboardClient";
 
 export const dynamic = "force-dynamic";
 
-export default function SpecialistDashboardPage() {
+export default async function SpecialistDashboardPage() {
+  // Guard route for medical_specialist or admin
+  await requireRole(["admin", "medical_specialist"]);
+
+  const supabase = createClient();
+
+  // 1. Fetch total count of patients
+  const { count: totalPatients, error: totalPatientsError } = await supabase
+    .from("patients")
+    .select("id", { count: "exact", head: true });
+
+  if (totalPatientsError) {
+    console.error("Error fetching total patients:", totalPatientsError);
+  }
+
+  // 2. Fetch flagged count in the last 7 days
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { count: flaggedThisWeek, error: flaggedError } = await supabase
+    .from("department_records")
+    .select("id", { count: "exact", head: true })
+    .eq("is_flagged", true)
+    .gte("created_at", sevenDaysAgo);
+
+  if (flaggedError) {
+    console.error("Error fetching flagged count:", flaggedError);
+  }
+
+  // 3. Get count of distinct active departments in records
+  const departments = ["laboratory", "imaging", "ultrasound", "ecg"];
+  const deptCounts = await Promise.all(
+    departments.map(async (dept) => {
+      const { count, error } = await supabase
+        .from("department_records")
+        .select("id", { count: "exact", head: true })
+        .eq("department", dept);
+      if (error) {
+        console.error(`Error counting records for department ${dept}:`, error);
+        return 0;
+      }
+      return count || 0;
+    })
+  );
+  const departmentsCovered = deptCounts.filter((c) => c > 0).length;
+
+  // 4. Fetch 10 most recent flagged results
+  const { data: recentFlaggedData, error: flaggedListError } = await supabase
+    .from("department_records")
+    .select(`
+      id,
+      test_name,
+      test_value,
+      unit,
+      reference_range_min,
+      reference_range_max,
+      created_at,
+      patient:patient_id (
+        id,
+        first_name,
+        last_name
+      )
+    `)
+    .eq("is_flagged", true)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (flaggedListError) {
+    console.error("Error fetching recent flagged records:", flaggedListError);
+  }
+
+  // 5. Fetch recent patient activity (last 5 active patients)
+  // Cap at 100 to optimize query performance while maintaining high probability of finding 5 unique patients.
+  const { data: recentActivity, error: activityError } = await supabase
+    .from("department_records")
+    .select(`
+      created_at,
+      patient:patient_id (
+        id,
+        first_name,
+        last_name
+      )
+    `)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (activityError) {
+    console.error("Error fetching recent activity records:", activityError);
+  }
+
+  const recentPatientsMap = new Map();
+  for (const rec of recentActivity || []) {
+    const rawPatient = rec.patient;
+    const patient = Array.isArray(rawPatient)
+      ? rawPatient[0]
+      : (rawPatient as unknown as { id: string; first_name: string; last_name: string } | null);
+
+    if (patient && !recentPatientsMap.has(patient.id)) {
+      recentPatientsMap.set(patient.id, {
+        id: patient.id,
+        first_name: patient.first_name,
+        last_name: patient.last_name,
+        last_activity: rec.created_at
+      });
+    }
+    if (recentPatientsMap.size >= 5) {
+      break;
+    }
+  }
+  const recentPatients = Array.from(recentPatientsMap.values());
+
+  const stats = {
+    totalPatients: totalPatients || 0,
+    flaggedThisWeek: flaggedThisWeek || 0,
+    departmentsCovered
+  };
+
+  const formattedRecentFlagged = (recentFlaggedData || []).map((r) => {
+    const rawPatient = r.patient;
+    const patient = Array.isArray(rawPatient)
+      ? rawPatient[0]
+      : (rawPatient as unknown as { id: string; first_name: string; last_name: string } | null);
+
+    return {
+      id: r.id,
+      test_name: r.test_name,
+      test_value: r.test_value,
+      unit: r.unit,
+      reference_range_min: r.reference_range_min,
+      reference_range_max: r.reference_range_max,
+      created_at: r.created_at,
+      patient: patient ? {
+        id: patient.id,
+        first_name: patient.first_name,
+        last_name: patient.last_name
+      } : null
+    };
+  });
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Specialist Dashboard</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Medical specialist diagnostics review and longitudinal analytics
-        </p>
-      </div>
-
-      {/* Main Welcome Card */}
-      <Card className="border border-slate-200/80 dark:border-slate-800 shadow-md">
-        <CardHeader className="flex flex-row items-center gap-4 bg-slate-50/55 dark:bg-slate-900/30 pb-4">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400">
-            <LineChart className="h-5 w-5" />
-          </div>
-          <div>
-            <CardTitle>Welcome back, Doctor</CardTitle>
-            <CardDescription>Longitudinal diagnostics analysis and read-only reports are active</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-4">
-          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            Search patient clinical records, trace historical laboratory progress against reference baselines, and review medical records. Access is strictly read-only per capstone specification (no AI diagnostics are active).
-          </p>
-
-          {/* Quick Metrics Stubs */}
-          <div className="grid gap-4 md:grid-cols-2 pt-2">
-            <div className="p-4 border border-slate-200/60 dark:border-slate-850 rounded-lg space-y-2">
-              <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                <UserCheck className="h-4 w-4 text-indigo-500" />
-                Assigned Patients
-              </div>
-              <p className="text-2xl font-bold">--</p>
-            </div>
-            <div className="p-4 border border-slate-200/60 dark:border-slate-850 rounded-lg space-y-2">
-              <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                <LineChart className="h-4 w-4 text-emerald-500" />
-                Longitudinal Charts
-              </div>
-              <p className="text-2xl font-bold">--</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <SpecialistDashboardClient
+      stats={stats}
+      recentFlagged={formattedRecentFlagged}
+      recentPatients={recentPatients}
+    />
   );
 }
