@@ -2,6 +2,8 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Sidebar from "@/components/sidebar";
+import { headers } from "next/headers";
+import { logEvent } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,38 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   if (!profile.is_active) {
     await supabase.auth.signOut();
     redirect("/login?error=account_deactivated");
+  }
+
+  // 4. Handle access denial logging and redirection (Revision B)
+  const reqHeaders = headers();
+  const xPathname = reqHeaders.get("x-pathname") || "";
+
+  if (xPathname) {
+    const isAdminRoute = xPathname.startsWith("/admin");
+    const isReceptionRoute = xPathname.startsWith("/reception");
+    const isDepartmentRoute = xPathname.startsWith("/department");
+    const isSpecialistRoute = xPathname.startsWith("/specialist");
+    const isPatientRoute = xPathname.startsWith("/patient");
+
+    let isRoleMismatch = false;
+    if (isAdminRoute && profile.role !== "admin") isRoleMismatch = true;
+    if (isReceptionRoute && profile.role !== "admin" && profile.role !== "receptionist") isRoleMismatch = true;
+    if (isDepartmentRoute && profile.role !== "admin" && profile.role !== "department_staff") isRoleMismatch = true;
+    if (isSpecialistRoute && profile.role !== "admin" && profile.role !== "medical_specialist") isRoleMismatch = true;
+    if (isPatientRoute && profile.role !== "patient") isRoleMismatch = true;
+
+    if (isRoleMismatch) {
+      const ipAddress = reqHeaders.get("x-forwarded-for")?.split(",")[0] || null;
+      await logEvent(
+        supabase,
+        user.id,
+        "ACCESS_DENIED",
+        `Unauthorized access attempt by user ${profile.full_name} (${profile.role}) to path: ${xPathname}`,
+        ipAddress,
+        { attempted_path: xPathname, user_role: profile.role }
+      );
+      redirect("/403");
+    }
   }
 
   const sidebarUser = {

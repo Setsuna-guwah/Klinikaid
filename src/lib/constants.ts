@@ -118,3 +118,26 @@ export const CHART_COLORS = {
   muted:      '#94A3B8',  // gray — secondary data
 };
 
+// Gemini 2.5 Flash official pricing (Google, May 2026): $0.30/1M input, $2.50/1M output.
+// chatbot_logs.tokens_used is the COMBINED total, so a single blended rate is used.
+// Blend assumes a RAG workload of ~85% input / ~15% output tokens:
+//   0.85 * 0.30 + 0.15 * 2.50 = 0.63 USD per 1M tokens. Edit the blend if the ratio shifts.
+export const GEMINI_BLENDED_USD_PER_1M_TOKENS = 0.63;
+
+export const SYSTEM_EVENT_TYPES = {
+  LOGIN_SUCCESS:          "LOGIN_SUCCESS",
+  LOGIN_FAILED:           "LOGIN_FAILED",
+  LOGOUT:                 "LOGOUT",
+  USER_REGISTERED:        "USER_REGISTERED",
+  STAFF_CREATED:          "STAFF_CREATED",
+  STAFF_UPDATED:          "STAFF_UPDATED",
+  DOCUMENT_APPROVED:      "DOCUMENT_APPROVED",
+  DOCUMENT_REJECTED:      "DOCUMENT_REJECTED",
+  TRIAGE_COMPLETED:       "TRIAGE_COMPLETED",
+  RECORD_ENTERED:         "RECORD_ENTERED",
+  RAG_DOCUMENT_UPLOADED:  "RAG_DOCUMENT_UPLOADED",
+  RAG_DOCUMENT_DELETED:   "RAG_DOCUMENT_DELETED",
+  ACCESS_DENIED:          "ACCESS_DENIED",
+  EXPORT_SYSTEM_LOGS:     "EXPORT_SYSTEM_LOGS",
+} as const;
+

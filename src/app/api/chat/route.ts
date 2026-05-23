@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     // 4. Perform vector similarity search in public.rag_documents
     const { data: matchedDocs, error: rpcError } = await supabase.rpc("match_documents", {
       query_embedding: queryEmbedding,
-      match_threshold: 0.3,
+      match_threshold: 0.6,
       match_count: 5,
     });
     
@@ -104,7 +104,7 @@ Clinic Knowledge context:
 ${context}`;
 
     const chatModel = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       systemInstruction: systemPrompt,
     });
     

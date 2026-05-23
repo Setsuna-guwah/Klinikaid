@@ -29,17 +29,15 @@ export async function middleware(request: NextRequest) {
 
   // 2. Authenticated user logic
   if (user) {
-    // Fetch profile role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    const role = profile?.role;
-
     // Redirect already logged-in users away from login page to their dashboard
     if (path === "/login" || path === "/") {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      const role = profile?.role;
       if (role === "admin") return NextResponse.redirect(new URL("/admin/dashboard", request.url));
       if (role === "receptionist") return NextResponse.redirect(new URL("/reception/dashboard", request.url));
       if (role === "department_staff") return NextResponse.redirect(new URL("/department/dashboard", request.url));
@@ -47,26 +45,23 @@ export async function middleware(request: NextRequest) {
       if (role === "patient") return NextResponse.redirect(new URL("/patient/dashboard", request.url));
     }
 
-    // Role-based route protection (SO-D)
-    if (isAdminRoute && role !== "admin") {
-      return NextResponse.redirect(new URL("/403", request.url));
-    }
-
-    if (isReceptionRoute && role !== "admin" && role !== "receptionist") {
-      return NextResponse.redirect(new URL("/403", request.url));
-    }
-
-    if (isDepartmentRoute && role !== "admin" && role !== "department_staff") {
-      return NextResponse.redirect(new URL("/403", request.url));
-    }
-
-    if (isSpecialistRoute && role !== "admin" && role !== "medical_specialist") {
-      return NextResponse.redirect(new URL("/403", request.url));
-    }
-
-    if (isPatientRoute && role !== "patient") {
-      return NextResponse.redirect(new URL("/403", request.url));
-    }
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-pathname", path);
+    
+    const nextResponse = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+    
+    // Copy set-cookie headers to maintain session refresh
+    supabaseResponse.headers.forEach((value, key) => {
+      if (key.toLowerCase() === "set-cookie") {
+        nextResponse.headers.append(key, value);
+      }
+    });
+    
+    return nextResponse;
   }
 
   return supabaseResponse;

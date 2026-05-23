@@ -34,6 +34,8 @@ import {
   Loader2,
   Brain,
   Sparkles,
+  FileText,
+  X,
 } from "lucide-react";
 import {
   uploadRagTextAction,
@@ -57,6 +59,10 @@ interface RagManagerClientProps {
 export default function RagManagerClient({ initialDocuments }: RagManagerClientProps) {
   const [documents, setDocuments] = useState<GroupedDocument[]>(initialDocuments);
   const [searchTerm, setSearchTerm] = useState("");
+
+  React.useEffect(() => {
+    setDocuments(initialDocuments);
+  }, [initialDocuments]);
   
   // Dialog Open States
   const [isTextDialogOpen, setIsTextDialogOpen] = useState(false);
@@ -317,8 +323,21 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
                 Select a clinical PDF document. Gemini AI will extract all text to create vectorized searchable chunks.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-8 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl my-4 hover:border-teal-500/50 transition-colors">
-              <Upload className="h-10 w-10 text-slate-400 mb-3" />
+            <div className={`py-8 flex flex-col items-center justify-center border-2 border-dashed rounded-xl my-4 transition-all relative ${
+              isUploadingPdf
+                ? "border-slate-100 bg-slate-50/50 dark:border-slate-800/50 dark:bg-slate-900/20 opacity-60"
+                : pdfFile
+                ? "border-teal-500 bg-teal-50/5 dark:border-teal-500/50 dark:bg-teal-950/5"
+                : "border-slate-200 dark:border-slate-800 hover:border-teal-500/50"
+            }`}>
+              {isUploadingPdf ? (
+                <Loader2 className="h-10 w-10 text-teal-600 dark:text-teal-400 animate-spin mb-3" />
+              ) : pdfFile ? (
+                <FileText className="h-10 w-10 text-teal-600 dark:text-teal-400 mb-3" />
+              ) : (
+                <Upload className="h-10 w-10 text-slate-400 mb-3" />
+              )}
+              
               <input
                 id="pdf-file-input"
                 name="file"
@@ -328,13 +347,42 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
                 disabled={isUploadingPdf}
                 onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
               />
-              <Label
-                htmlFor="pdf-file-input"
-                className="cursor-pointer font-semibold text-teal-700 dark:text-teal-400 hover:underline"
-              >
-                {pdfFile ? pdfFile.name : "Select a PDF file"}
-              </Label>
-              <span className="text-[10px] text-slate-400 mt-1">Maximum file size 10MB</span>
+              
+              {pdfFile ? (
+                <div className="flex flex-col items-center space-y-1">
+                  <span className="font-semibold text-slate-900 dark:text-slate-100 px-4 text-center break-all">
+                    {pdfFile.name}
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {(pdfFile.size / (1024 * 1024)).toFixed(2)} MB
+                  </span>
+                  {!isUploadingPdf && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPdfFile(null);
+                        const fileInput = document.getElementById("pdf-file-input") as HTMLInputElement;
+                        if (fileInput) fileInput.value = "";
+                      }}
+                      className="mt-2 text-xs text-red-600 hover:text-red-500 flex items-center gap-1 font-medium py-1 px-2 rounded-md hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                      Remove file
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Label
+                    htmlFor="pdf-file-input"
+                    className="cursor-pointer font-semibold text-teal-700 dark:text-teal-400 hover:underline"
+                  >
+                    Select a PDF file
+                  </Label>
+                  <span className="text-[10px] text-slate-400 mt-1">Maximum file size 10MB</span>
+                </>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsPdfDialogOpen(false)} disabled={isUploadingPdf}>

@@ -8,10 +8,12 @@ import { revalidatePath } from "next/cache";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-type EmbedContentFn = (req: {
-  content: { role: string; parts: Array<{ text: string }> };
-  outputDimensionality: number;
-}) => Promise<{ embedding: { values: number[] } }>;
+type BatchEmbedContentFn = (req: {
+  requests: Array<{
+    content: { role: string; parts: Array<{ text: string }> };
+    outputDimensionality: number;
+  }>;
+}) => Promise<{ embeddings: Array<{ values: number[] }> }>;
 
 /**
  * Splits text into chunks of specified size and overlap.
@@ -68,28 +70,36 @@ export async function uploadRagTextAction(title: string, content: string) {
     // We use gemini-embedding-001 with outputDimensionality: 768 to achieve the correct 768-dim vector size.
     const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
     
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i];
-      const embedResult = await (embeddingModel.embedContent as unknown as EmbedContentFn)({
-        content: { role: "user", parts: [{ text: chunk }] },
-        outputDimensionality: 768,
+    const embeddings: number[][] = [];
+    const batchSize = 100;
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      const chunkBatch = chunks.slice(i, i + batchSize);
+      const batchResult = await (embeddingModel.batchEmbedContents as unknown as BatchEmbedContentFn)({
+        requests: chunkBatch.map((chunk) => ({
+          content: { role: "user", parts: [{ text: chunk }] },
+          outputDimensionality: 768,
+        })),
       });
-      const embedding = embedResult.embedding.values;
-      
-      const { error } = await adminSupabase.from("rag_documents").insert({
-        title,
-        content: chunk,
-        embedding,
-        metadata: {
-          document_id: documentId,
-          chunk_index: i,
-          total_chunks: chunks.length,
-          source_type: "text",
-        }
-      });
-      
-      if (error) throw error;
+      if (!batchResult.embeddings) {
+        throw new Error("Failed to generate batch embeddings.");
+      }
+      embeddings.push(...batchResult.embeddings.map((e) => e.values));
     }
+    
+    const rows = chunks.map((chunk, idx) => ({
+      title,
+      content: chunk,
+      embedding: embeddings[idx],
+      metadata: {
+        document_id: documentId,
+        chunk_index: idx,
+        total_chunks: chunks.length,
+        source_type: "text",
+      }
+    }));
+    
+    const { error } = await adminSupabase.from("rag_documents").insert(rows);
+    if (error) throw error;
     
     await logEvent(
       adminSupabase,
@@ -133,8 +143,8 @@ export async function uploadRagPdfAction(formData: FormData) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    // Extract text using Gemini 1.5 Flash
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Extract text using Gemini 2.5 Flash
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent([
       {
         inlineData: {
@@ -158,28 +168,36 @@ export async function uploadRagPdfAction(formData: FormData) {
     // We use gemini-embedding-001 with outputDimensionality: 768 to achieve the correct 768-dim vector size.
     const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
     
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i];
-      const embedResult = await (embeddingModel.embedContent as unknown as EmbedContentFn)({
-        content: { role: "user", parts: [{ text: chunk }] },
-        outputDimensionality: 768,
+    const embeddings: number[][] = [];
+    const batchSize = 100;
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      const chunkBatch = chunks.slice(i, i + batchSize);
+      const batchResult = await (embeddingModel.batchEmbedContents as unknown as BatchEmbedContentFn)({
+        requests: chunkBatch.map((chunk) => ({
+          content: { role: "user", parts: [{ text: chunk }] },
+          outputDimensionality: 768,
+        })),
       });
-      const embedding = embedResult.embedding.values;
-      
-      const { error } = await adminSupabase.from("rag_documents").insert({
-        title: file.name,
-        content: chunk,
-        embedding,
-        metadata: {
-          document_id: documentId,
-          chunk_index: i,
-          total_chunks: chunks.length,
-          source_type: "pdf",
-        }
-      });
-      
-      if (error) throw error;
+      if (!batchResult.embeddings) {
+        throw new Error("Failed to generate batch embeddings.");
+      }
+      embeddings.push(...batchResult.embeddings.map((e) => e.values));
     }
+    
+    const rows = chunks.map((chunk, idx) => ({
+      title: file.name,
+      content: chunk,
+      embedding: embeddings[idx],
+      metadata: {
+        document_id: documentId,
+        chunk_index: idx,
+        total_chunks: chunks.length,
+        source_type: "pdf",
+      }
+    }));
+    
+    const { error } = await adminSupabase.from("rag_documents").insert(rows);
+    if (error) throw error;
     
     await logEvent(
       adminSupabase,
