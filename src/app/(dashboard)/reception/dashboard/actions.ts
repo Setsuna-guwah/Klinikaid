@@ -1,0 +1,93 @@
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+import { createPatient } from "@/lib/patient/createPatient";
+import { z } from "zod";
+
+const receptionPatientSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date of birth format"),
+  gender: z.enum(["male", "female", "other"], { message: "Select a valid gender" }),
+  contactNumber: z.string().min(1, "Contact number is required"),
+  address: z.string().min(1, "Address is required"),
+});
+
+export interface ReceptionPatientResult {
+  error?: string;
+  success?: boolean;
+  passwordUsed?: string;
+}
+
+export async function createPatientByStaffAction(
+  prevState: unknown,
+  formData: FormData
+): Promise<ReceptionPatientResult> {
+  // 1. Authenticate receptionist session (Rule 1)
+  const client = createClient();
+  const { data: { user }, error: authError } = await client.auth.getUser();
+
+  if (authError || !user) {
+    return { error: "Unauthorized. Session expired." };
+  }
+
+  // Verify receptionist or admin role (Rule 2)
+  const { data: profile } = await client
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || (profile.role !== "receptionist" && profile.role !== "admin")) {
+    return { error: "Unauthorized. Front desk privileges required." };
+  }
+
+  // 2. Extract and Validate Form Data
+  const email = formData.get("email") as string;
+  const firstName = formData.get("firstName") as string;
+  const lastName = formData.get("lastName") as string;
+  const dob = formData.get("dob") as string;
+  const gender = formData.get("gender") as string;
+  const contactNumber = formData.get("contactNumber") as string;
+  const address = formData.get("address") as string;
+
+  const validation = receptionPatientSchema.safeParse({
+    email,
+    firstName,
+    lastName,
+    dob,
+    gender,
+    contactNumber,
+    address,
+  });
+
+  if (!validation.success) {
+    return { error: validation.error.issues.map((e) => e.message).join(". ") };
+  }
+
+  // 3. Invoke Patient Creation
+  const res = await createPatient(
+    client,
+    {
+      email,
+      firstName,
+      lastName,
+      dob,
+      gender: gender as "male" | "female" | "other",
+      contactNumber,
+      address,
+    },
+    true, // Receptionist-led patient registration
+    user.id // Pass receptionist user ID for audit log tracking
+  );
+
+  if (!res.success || res.error) {
+    return { error: res.error || "Failed to create patient account." };
+  }
+
+  return {
+    success: true,
+    passwordUsed: res.passwordUsed,
+  };
+}

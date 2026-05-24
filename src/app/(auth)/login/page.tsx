@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Activity, Lock, Mail, Loader2, KeyRound, ShieldAlert } from "lucide-react";
+import Link from "next/link";
 
 function LoginForm() {
   const router = useRouter();
@@ -182,6 +183,15 @@ function LoginForm() {
                   "Sign In"
                 )}
               </Button>
+
+              {!mfaRequired && (
+                <div className="text-sm text-center text-slate-500 dark:text-slate-400 mt-2">
+                  Don&apos;t have an account?{" "}
+                  <Link href="/register" className="text-blue-600 hover:underline">
+                    Sign Up
+                  </Link>
+                </div>
+              )}
 
               {mfaRequired && (
                 <Button

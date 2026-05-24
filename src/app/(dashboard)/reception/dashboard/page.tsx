@@ -13,6 +13,7 @@ import {
   History
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import NewPatientModal from "./NewPatientModal";
 
 export const dynamic = "force-dynamic";
 
@@ -145,12 +146,14 @@ export default async function ReceptionDashboardPage() {
           </p>
         </div>
         
-        <Link href="/reception/queue">
+        <div className="flex items-center gap-3">
+          <NewPatientModal />
+          
           <Link href="/reception/queue" className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors gap-1.5">
             Open Review Queue
             <ArrowRight className="h-4 w-4" />
           </Link>
-        </Link>
+        </div>
       </div>
 
       {/* KPI Cards */}
