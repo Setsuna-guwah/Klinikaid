@@ -23,43 +23,7 @@ Next.js routing in `src/app/` is divided into two primary route groups to isolat
 
 KlinikAid implements a **fail-closed layout-level role gate** to protect dashboard routes. It works in tandem with Next.js Middleware:
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Browser as Browser
-    participant MW as Middleware
-    participant Layout as Layout Component
-    participant DB as Supabase DB
-
-    Browser->>MW: Request Dashboard Route
-    Note over MW: Step 1: Authentication Check
-    alt Not Authenticated
-        MW-->>Browser: Redirect to /login
-    else Authenticated
-        MW->>Layout: Forward with x-pathname header
-    end
-
-    Note over Layout: Step 2: Pathname Verification
-    alt x-pathname is Empty
-        Layout-->>Browser: Redirect to /403
-    end
-
-    Note over Layout: Step 3: Fetch Profile & Permissions
-    Layout->>DB: Fetch user profile
-    DB-->>Layout: Return profile (role, status)
-
-    Note over Layout: Step 4: Security Gates
-    alt Account Deactivated
-        Layout-->>Browser: Sign Out & Redirect to /login
-    else Patient Privacy Consent Missing
-        Layout-->>Browser: Redirect to /privacy-agreement
-    else Path / Role Mismatch
-        Layout->>DB: Log ACCESS_DENIED
-        Layout-->>Browser: Redirect to /403
-    else Authorized
-        Layout-->>Browser: Render Dashboard Page
-    end
-```
+![Layout-Level Role Gate Flow](./layout_gate_flow.png)
 
 ### Critical Rules of the Gate
 - **Fail-Closed Redirection**: If the `x-pathname` header is missing or empty, the gate denies access and redirects to `/403`.
