@@ -141,6 +141,11 @@ function AlertDialogDescription({
   )
 }
 
+/**
+ * NOTE: Unlike Radix-based shadcn, AlertDialogAction in this base-ui version 
+ * does not automatically close the parent dialog. The action handler (onClick) 
+ * must manually trigger dialog dismissal (e.g., via state cleanup/setOpen(false)).
+ */
 function AlertDialogAction({
   className,
   ...props
