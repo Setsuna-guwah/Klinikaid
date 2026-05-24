@@ -25,6 +25,7 @@ KlinikAid implements a **fail-closed layout-level role gate** to protect dashboa
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant Browser as Browser
     participant MW as Middleware
     participant Layout as Layout Component
