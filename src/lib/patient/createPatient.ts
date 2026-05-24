@@ -2,6 +2,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logEvent } from "@/lib/logger";
 import crypto from "crypto";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export interface CreatePatientInput {
   email: string;
@@ -120,7 +121,7 @@ export async function createPatient(
         await logEvent(
           adminClient,
           receptionistId || null,
-          "STAFF_ACTION_FAILED",
+          SYSTEM_EVENT_TYPES.STAFF_ACTION_FAILED,
           `Receptionist failed to create patient: DB insert failed for ${email} - ${patientError.message}`
         );
         return {
@@ -141,7 +142,7 @@ export async function createPatient(
       ? `Patient registered by receptionist: ${fullName} (${email})`
       : `Patient registered via self-registration: ${fullName} (${email})`;
 
-    await logEvent(adminClient, userId, "USER_REGISTERED", logMessage);
+    await logEvent(adminClient, userId, SYSTEM_EVENT_TYPES.USER_REGISTERED, logMessage);
 
     return {
       success: true,

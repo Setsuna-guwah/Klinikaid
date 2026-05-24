@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/auth/helpers";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logEvent } from "@/lib/logger";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     await logEvent(
       supabase,
       adminProfile.id,
-      "STAFF_UPDATED",
+      SYSTEM_EVENT_TYPES.STAFF_UPDATED,
       `Staff user updated: ${fullName} (${email}) as ${role}`,
       null,
       { target_user_id: id, role, department }
@@ -106,7 +107,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
 
     // 3. Log the active status toggle
-    const eventType = isActive ? "STAFF_ACTIVATED" : "STAFF_DEACTIVATED";
+    const eventType = isActive ? SYSTEM_EVENT_TYPES.STAFF_ACTIVATED : SYSTEM_EVENT_TYPES.STAFF_DEACTIVATED;
     await logEvent(
       supabase,
       adminProfile.id,

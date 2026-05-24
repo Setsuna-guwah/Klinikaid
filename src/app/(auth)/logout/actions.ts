@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/logger";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 /**
  * Signs the current user out, logs the logout event, and redirects to /login.
@@ -19,7 +20,7 @@ export async function logoutAction(): Promise<never> {
   } = await supabase.auth.getUser();
 
   if (user) {
-    await logEvent(supabase, user.id, "LOGOUT", "User logged out successfully", ipAddress);
+    await logEvent(supabase, user.id, SYSTEM_EVENT_TYPES.LOGOUT, "User logged out successfully", ipAddress);
   }
 
   await supabase.auth.signOut();

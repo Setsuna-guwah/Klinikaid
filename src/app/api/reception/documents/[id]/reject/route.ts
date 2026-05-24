@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth/helpers";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logEvent } from "@/lib/logger";
 import { toZonedTime, format } from "date-fns-tz";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export async function POST(
   request: Request,
@@ -98,7 +99,7 @@ export async function POST(
     await logEvent(
       supabase,
       user.id,
-      "DOCUMENT_REJECTED",
+      SYSTEM_EVENT_TYPES.DOCUMENT_REJECTED,
       `Document rejected: ${updatedDoc.file_name} for patient ${updatedDoc.patient?.first_name} ${updatedDoc.patient?.last_name}. Reason: ${rejectionReason}`,
       null,
       { document_id: documentId, rejection_reason: rejectionReason }

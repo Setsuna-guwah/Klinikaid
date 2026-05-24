@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logEvent } from "@/lib/logger";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -90,7 +91,7 @@ export async function GET(request: Request) {
       await logEvent(
         supabase,
         user.id,
-        "EXPORT_SYSTEM_LOGS",
+        SYSTEM_EVENT_TYPES.EXPORT_SYSTEM_LOGS,
         `Exported system logs as CSV. Filters: ${JSON.stringify({ eventType, startDate, endDate, userId })}`,
         ipAddress,
         { filters: { eventType, startDate, endDate, userId } }

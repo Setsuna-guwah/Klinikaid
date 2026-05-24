@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Sidebar from "@/components/sidebar";
 import { headers } from "next/headers";
 import { logEvent } from "@/lib/logger";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
       await logEvent(
         supabase,
         user.id,
-        "ACCESS_DENIED",
+        SYSTEM_EVENT_TYPES.ACCESS_DENIED,
         `Unauthorized access attempt by user ${profile.full_name} (${profile.role}) to path: ${xPathname}`,
         ipAddress,
         { attempted_path: xPathname, user_role: profile.role }

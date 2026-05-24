@@ -23,8 +23,7 @@ import {
   UserMinus, 
   UserPlus, 
   Loader2, 
-  ShieldAlert,
-  KeyRound
+  ShieldAlert
 } from "lucide-react";
 
 // Form validation schema
@@ -216,16 +215,6 @@ export default function StaffManagementPage() {
     }
   };
 
-  // TEMPORARY: DEV/TESTING CONVENIENCE ONLY - PASSWORD AUTO-GENERATOR
-  // REMOVE THIS FUNCTION AND BUTTON FOR PRODUCTION
-  const generateTempPassword = () => {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
-    let pass = "";
-    for (let i = 0; i < 10; i++) {
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setValue("password", pass);
-  };
 
   // Filter staff list based on search
   const filteredStaff = staffList.filter((s) => {
@@ -431,17 +420,6 @@ export default function StaffManagementPage() {
                 <Label htmlFor="password" className="text-xs font-semibold">
                   {editingStaff ? "New Password (Leave blank to keep current)" : "Temporary Password"}
                 </Label>
-                
-                {/* TEMPORARY: PASSWORD AUTO-GENERATION BUTTON FOR CONVENIENCE */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={generateTempPassword}
-                  className="h-6 text-[10px] gap-1 text-slate-500 hover:text-blue-600 px-2"
-                >
-                  <KeyRound className="h-3 w-3" />
-                  Auto-generate
-                </Button>
               </div>
               <Input
                 id="password"

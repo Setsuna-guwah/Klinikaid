@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/logger";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 import { revalidatePath } from "next/cache";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
@@ -104,7 +105,7 @@ export async function uploadRagTextAction(title: string, content: string) {
     await logEvent(
       adminSupabase,
       user.id,
-      "RAG_DOCUMENT_UPLOADED",
+      SYSTEM_EVENT_TYPES.RAG_DOCUMENT_UPLOADED,
       `Uploaded text document "${title}" (${chunks.length} chunks)`,
       null,
       { document_id: documentId, title, type: "text" }
@@ -120,7 +121,7 @@ export async function uploadRagTextAction(title: string, content: string) {
 }
 
 /**
- * Action to upload a PDF, extract its text via Gemini 1.5 Flash, chunk, and embed it.
+ * Action to upload a PDF, extract its text via Gemini 2.5 Flash, chunk, and embed it.
  */
 export async function uploadRagPdfAction(formData: FormData) {
   try {
@@ -202,7 +203,7 @@ export async function uploadRagPdfAction(formData: FormData) {
     await logEvent(
       adminSupabase,
       user.id,
-      "RAG_DOCUMENT_UPLOADED",
+      SYSTEM_EVENT_TYPES.RAG_DOCUMENT_UPLOADED,
       `Uploaded PDF document "${file.name}" (${chunks.length} chunks)`,
       null,
       { document_id: documentId, title: file.name, type: "pdf" }
@@ -249,7 +250,7 @@ export async function deleteRagDocumentAction(documentId: string) {
     await logEvent(
       adminSupabase,
       user.id,
-      "RAG_DOCUMENT_DELETED",
+      SYSTEM_EVENT_TYPES.RAG_DOCUMENT_DELETED,
       `Deleted RAG document "${docTitle}"`,
       null,
       { document_id: documentId, title: docTitle }

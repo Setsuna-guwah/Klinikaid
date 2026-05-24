@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/logger";
 import { extractDocumentText } from "@/lib/documents/extractDocumentText";
 import { revalidatePath } from "next/cache";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export async function submitDocumentAction(formData: FormData) {
   // Standing Rule 1: supabase.auth.getUser() first line
@@ -109,7 +110,7 @@ export async function submitDocumentAction(formData: FormData) {
   await logEvent(
     supabase,
     user.id,
-    "DOCUMENT_SUBMITTED",
+    SYSTEM_EVENT_TYPES.DOCUMENT_SUBMITTED,
     `Patient submitted document: ${file.name}`,
     null,
     { document_id: docRow.id, file_name: file.name }

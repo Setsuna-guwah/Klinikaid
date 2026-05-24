@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/auth/helpers";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logEvent } from "@/lib/logger";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
     await logEvent(
       supabase,
       adminProfile.id,
-      "STAFF_CREATED",
+      SYSTEM_EVENT_TYPES.STAFF_CREATED,
       `Staff user created: ${fullName} (${email}) as ${role}`,
       null,
       { target_user_id: authData.user.id, role, department }

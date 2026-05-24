@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/logger";
 import { headers } from "next/headers";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export interface LoginResult {
   error?: string;
@@ -41,7 +42,7 @@ export async function loginAction(
     await logEvent(
       supabase,
       null,
-      "LOGIN_FAILED",
+      SYSTEM_EVENT_TYPES.LOGIN_FAILED,
       `Failed password login attempt for email: ${email} - ${authError.message}`,
       ipAddress
     );
@@ -71,7 +72,7 @@ export async function loginAction(
     await logEvent(
       supabase,
       user.id,
-      "LOGIN_FAILED",
+      SYSTEM_EVENT_TYPES.LOGIN_FAILED,
       `Inactive user ${profile.full_name} (${email}) attempted login`,
       ipAddress
     );
@@ -130,7 +131,7 @@ export async function loginAction(
       await logEvent(
         supabase,
         user.id,
-        "LOGIN_FAILED",
+        SYSTEM_EVENT_TYPES.LOGIN_FAILED,
         `MFA code verification failed for user ${profile.full_name}`,
         ipAddress
       );
@@ -142,7 +143,7 @@ export async function loginAction(
   await logEvent(
     supabase,
     user.id,
-    "LOGIN_SUCCESS",
+    SYSTEM_EVENT_TYPES.LOGIN_SUCCESS,
     `User ${profile.full_name} (${profile.role}) successfully logged in`,
     ipAddress
   );

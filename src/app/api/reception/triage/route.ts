@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth/helpers";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logEvent } from "@/lib/logger";
 import { toZonedTime } from "date-fns-tz";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export async function POST(request: Request) {
   const supabase = createClient();
@@ -94,11 +95,10 @@ export async function POST(request: Request) {
       throw insertError || new Error("Failed to insert queue record");
     }
 
-    // 9. Log mutation event (Rule 5)
     await logEvent(
       supabase,
       user.id,
-      "TRIAGE_COMPLETED",
+      SYSTEM_EVENT_TYPES.TRIAGE_COMPLETED,
       `Patient ${queueEntry.patient?.first_name} ${queueEntry.patient?.last_name} routed to ${department} with queue #${queueNumber}`,
       null,
       {

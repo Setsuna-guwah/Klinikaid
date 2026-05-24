@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth/helpers";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logEvent } from "@/lib/logger";
 import { toZonedTime } from "date-fns-tz";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export async function GET(request: Request) {
   const supabase = createClient();
@@ -179,7 +180,7 @@ export async function POST(request: Request) {
     await logEvent(
       supabase,
       user.id,
-      "RECORD_ENTERED",
+      SYSTEM_EVENT_TYPES.RECORD_ENTERED,
       `Entered results for patient in ${dept} department. Total tests: ${results.length}, Flagged: ${flaggedCount}`,
       null,
       {

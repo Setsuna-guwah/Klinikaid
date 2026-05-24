@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth/helpers";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { logEvent } from "@/lib/logger";
 import { toZonedTime, format } from "date-fns-tz";
+import { SYSTEM_EVENT_TYPES } from "@/lib/constants";
 
 export async function POST(
   request: Request,
@@ -89,7 +90,7 @@ export async function POST(
     await logEvent(
       supabase,
       user.id,
-      "DOCUMENT_APPROVED",
+      SYSTEM_EVENT_TYPES.DOCUMENT_APPROVED,
       `Document approved: ${updatedDoc.file_name} for patient ${updatedDoc.patient?.first_name} ${updatedDoc.patient?.last_name}`,
       null,
       { document_id: documentId, notes: body.notes || "" }
