@@ -25,36 +25,38 @@ KlinikAid implements a **fail-closed layout-level role gate** to protect dashboa
 
 ```mermaid
 sequenceDiagram
-    participant User as Client Browser
+    participant Browser as Browser
     participant MW as Middleware
-    participant Layout as (dashboard)/layout.tsx
+    participant Layout as Layout Component
     participant DB as Supabase DB
 
-    User->>MW: Request to /admin/dashboard
-    Note over MW: Reads target path
-    MW->>MW: Check authentication
+    Browser->>MW: Request Dashboard Route
+    Note over MW: Step 1: Authentication Check
     alt Not Authenticated
-        MW-->>User: Redirect to /login?redirect=/admin/dashboard
+        MW-->>Browser: Redirect to /login
     else Authenticated
-        MW->>MW: Set x-pathname Header
-        MW->>Layout: Forward Request with Header
+        MW->>Layout: Forward with x-pathname header
     end
 
-    Note over Layout: Reads x-pathname Header
+    Note over Layout: Step 2: Pathname Verification
     alt x-pathname is Empty
-        Layout-->>User: Redirect to /403
-    else x-pathname exists
-        Layout->>DB: Fetch user profile (role, status)
-        alt Account Deactivated
-            Layout-->>User: Sign Out & Redirect to /login?error=account_deactivated
-        else Patient has not accepted Privacy Consent
-            Layout-->>User: Redirect to /privacy-agreement
-        else Path/Role Mismatch
-            Layout->>DB: Log ACCESS_DENIED event
-            Layout-->>User: Redirect to /403
-        else Authorized
-            Layout-->>User: Render Dashboard Page
-        end
+        Layout-->>Browser: Redirect to /403
+    end
+
+    Note over Layout: Step 3: Fetch Profile & Permissions
+    Layout->>DB: Fetch user profile
+    DB-->>Layout: Return profile (role, status)
+
+    Note over Layout: Step 4: Security Gates
+    alt Account Deactivated
+        Layout-->>Browser: Sign Out & Redirect to /login
+    else Patient Privacy Consent Missing
+        Layout-->>Browser: Redirect to /privacy-agreement
+    else Path / Role Mismatch
+        Layout->>DB: Log ACCESS_DENIED
+        Layout-->>Browser: Redirect to /403
+    else Authorized
+        Layout-->>Browser: Render Dashboard Page
     end
 ```
 
