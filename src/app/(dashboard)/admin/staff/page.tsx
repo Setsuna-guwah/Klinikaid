@@ -45,7 +45,7 @@ const staffFormSchema = z.object({
 
 const ROLE_COLORS: Record<UserRole, string> = {
   admin: "bg-red-500 text-white dark:bg-red-600",
-  receptionist: "bg-blue-500 text-white dark:bg-blue-600",
+  receptionist: "bg-accentBlue-500 text-white dark:bg-accentBlue-600",
   department_staff: "bg-purple-500 text-white dark:bg-purple-600",
   medical_specialist: "bg-indigo-500 text-white dark:bg-indigo-600",
   patient: "bg-green-500 text-white dark:bg-green-600",
@@ -253,7 +253,7 @@ export default function StaffManagementPage() {
           </p>
         </div>
 
-        <Button onClick={handleCreateOpen} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+        <Button onClick={handleCreateOpen} className="gap-2 bg-primary hover:bg-primary/90 text-white font-semibold">
           <Plus className="h-4 w-4" />
           Add Staff
         </Button>
@@ -283,7 +283,7 @@ export default function StaffManagementPage() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-500">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-accentBlue-600" />
               <span className="text-xs font-medium">Loading personnel registry...</span>
             </div>
           ) : filteredStaff.length === 0 ? (
@@ -500,7 +500,7 @@ export default function StaffManagementPage() {
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs"
+              className="w-full mt-4 bg-primary hover:bg-primary/90 text-white font-semibold text-xs"
             >
               {submitting ? (
                 <>

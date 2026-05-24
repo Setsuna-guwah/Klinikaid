@@ -2,7 +2,7 @@ import { UserRole, Department, DocumentStatus, QueueStatus, ReferenceRangeStatus
 
 export const USER_ROLES: Record<UserRole, { label: string; color: string }> = {
   admin: { label: "Administrator", color: "bg-red-500 text-white dark:bg-red-600" },
-  receptionist: { label: "Receptionist", color: "bg-blue-500 text-white dark:bg-blue-600" },
+  receptionist: { label: "Receptionist", color: "bg-accentBlue-500 text-white dark:bg-accentBlue-600" },
   department_staff: { label: "Department Staff", color: "bg-purple-500 text-white dark:bg-purple-600" },
   medical_specialist: { label: "Medical Specialist", color: "bg-indigo-500 text-white dark:bg-indigo-600" },
   patient: { label: "Patient", color: "bg-green-500 text-white dark:bg-green-600" },
@@ -22,7 +22,7 @@ export const DOCUMENT_STATUSES: Record<DocumentStatus, { label: string; color: s
 };
 
 export const QUEUE_STATUSES: Record<QueueStatus, { label: string; color: string }> = {
-  waiting: { label: "Waiting", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
+  waiting: { label: "Waiting", color: "bg-accentBlue-100 text-accentBlue-800 dark:bg-accentBlue-900/30 dark:text-accentBlue-400" },
   in_progress: { label: "In Progress", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400" },
   completed: { label: "Completed", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
   cancelled: { label: "Cancelled", color: "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-400" },

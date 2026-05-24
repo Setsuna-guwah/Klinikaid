@@ -198,7 +198,7 @@ export default function SubmissionsClient({
   const getQueueBadge = (status: string) => {
     switch (status) {
       case "waiting":
-        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white font-medium">Waiting</Badge>;
+        return <Badge className="bg-accentBlue-500 hover:bg-accentBlue-600 text-white font-medium">Waiting</Badge>;
       case "in_progress":
         return <Badge className="bg-purple-500 hover:bg-purple-600 text-white font-medium animate-pulse">In Progress</Badge>;
       case "completed":
@@ -264,7 +264,7 @@ export default function SubmissionsClient({
         <div className="lg:col-span-1 space-y-6">
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-md">
             <CardHeader className="flex flex-row items-center gap-3.5 bg-slate-50/55 dark:bg-slate-900/30 pb-4">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accentBlue-100 text-accentBlue-600 dark:bg-accentBlue-950/40 dark:text-accentBlue-400">
                 <Activity className="h-4.5 w-4.5" />
               </div>
               <div>
@@ -285,12 +285,12 @@ export default function SubmissionsClient({
                 activeQueueList.map((item) => {
                   const triage = parseTriageNotes(item.triage_notes);
                   return (
-                    <div key={item.id} className="space-y-4 p-4 border border-blue-100/50 dark:border-blue-950/20 bg-blue-50/5 dark:bg-blue-950/5 rounded-xl">
+                    <div key={item.id} className="space-y-4 p-4 border border-accentBlue-100/50 dark:border-accentBlue-950/20 bg-accentBlue-50/5 dark:bg-accentBlue-950/5 rounded-xl">
                       {/* Ticket Number */}
                       <div className="flex items-center justify-between">
                         <div className="flex flex-col">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Queue Number</span>
-                          <span className="text-3xl font-black font-mono text-blue-600 dark:text-blue-400">
+                          <span className="text-3xl font-black font-mono text-accentBlue-600 dark:text-accentBlue-400">
                             {triage?.queue_number || `--`}
                           </span>
                         </div>
@@ -311,7 +311,7 @@ export default function SubmissionsClient({
                         <div>
                           <span className="text-slate-400 block mb-0.5">Est. Wait Time:</span>
                           <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5 text-blue-500" />
+                            <Clock className="h-3.5 w-3.5 text-accentBlue-500" />
                             {item.estimated_wait_minutes !== null 
                               ? `${item.estimated_wait_minutes} mins` 
                               : "Calculating..."}

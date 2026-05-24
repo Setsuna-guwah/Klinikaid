@@ -306,7 +306,7 @@ export default function ReceptionKanban({ initialDocuments }: ReceptionKanbanPro
                         >
                           <CardHeader className="p-3 pb-2 space-y-1.5">
                             <div className="flex justify-between items-start gap-1">
-                              <CardTitle className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+                              <CardTitle className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary dark:group-hover:text-accentBlue-400 transition-colors line-clamp-1">
                                 {doc.patient
                                   ? `${doc.patient.first_name} ${doc.patient.last_name}`
                                   : "Unknown Patient"}
@@ -331,7 +331,7 @@ export default function ReceptionKanban({ initialDocuments }: ReceptionKanbanPro
                                   {doc.uploader?.full_name || "System"}
                                 </span>
                               </span>
-                              <span className="text-xs text-primary group-hover:translate-x-1 transition-transform dark:text-blue-400">
+                              <span className="text-xs text-primary group-hover:translate-x-1 transition-transform dark:text-accentBlue-400">
                                 <ArrowRight className="h-3.5 w-3.5" />
                               </span>
                             </div>

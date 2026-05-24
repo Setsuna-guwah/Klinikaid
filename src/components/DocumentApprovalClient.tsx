@@ -208,7 +208,7 @@ export default function DocumentApprovalClient({ document: initialDoc }: Documen
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm">
             <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
               <CardTitle className="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-2">
-                <User className="h-4 w-4 text-blue-500" />
+                <User className="h-4 w-4 text-accentBlue-500" />
                 Patient Details
               </CardTitle>
             </CardHeader>
@@ -257,7 +257,7 @@ export default function DocumentApprovalClient({ document: initialDoc }: Documen
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm">
             <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
               <CardTitle className="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-2">
-                <FileText className="h-4 w-4 text-blue-500" />
+                <FileText className="h-4 w-4 text-accentBlue-500" />
                 Document Metadata
               </CardTitle>
             </CardHeader>
@@ -313,7 +313,7 @@ export default function DocumentApprovalClient({ document: initialDoc }: Documen
             <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4 text-blue-500" />
+                  <ClipboardList className="h-4 w-4 text-accentBlue-500" />
                   OCR Text Output
                 </CardTitle>
                 <Badge variant="outline" className="text-[10px] uppercase font-mono px-2">
@@ -349,7 +349,7 @@ export default function DocumentApprovalClient({ document: initialDoc }: Documen
           <Card className="border border-slate-200/80 dark:border-slate-800 shadow-sm">
             <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
               <CardTitle className="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-blue-500" />
+                <ShieldCheck className="h-4 w-4 text-accentBlue-500" />
                 AI Validation Report
               </CardTitle>
               <CardDescription className="text-xs">

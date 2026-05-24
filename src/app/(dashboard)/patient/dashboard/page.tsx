@@ -99,7 +99,7 @@ export default async function PatientDashboardPage() {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case "waiting":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+        return "bg-accentBlue-100 text-accentBlue-800 dark:bg-accentBlue-900/30 dark:text-accentBlue-400";
       case "in_progress":
         return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400";
       default:
@@ -136,7 +136,7 @@ export default async function PatientDashboardPage() {
               <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Queue Status</span>
               {activeQueue ? (
                 <div className="flex flex-col items-center gap-1.5 pt-1">
-                  <Badge className="font-mono text-xs px-2 py-0.5 bg-blue-600 text-white">
+                  <Badge className="font-mono text-xs px-2 py-0.5 bg-accentBlue-600 text-white">
                     {getQueueNumber(activeQueue.triage_notes)}
                   </Badge>
                   <Badge className={`text-[9px] font-bold uppercase ${getStatusBadgeClass(activeQueue.status)}`}>
@@ -173,9 +173,9 @@ export default async function PatientDashboardPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Chat Card */}
         <Link href="/patient/chat" className="group">
-          <Card className="h-full border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-500/55 dark:hover:border-blue-500/55 transition-all">
+          <Card className="h-full border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-accentBlue-500/55 dark:hover:border-accentBlue-500/55 transition-all">
             <CardHeader className="flex flex-row items-center gap-3.5 pb-2">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 group-hover:scale-110 transition-transform">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accentBlue-50 text-accentBlue-600 dark:bg-accentBlue-950/30 dark:text-accentBlue-400 group-hover:scale-110 transition-transform">
                 <Bot className="h-5 w-5" />
               </div>
               <div>

@@ -105,7 +105,7 @@ export default function PatientChatClient() {
   return (
     <Card className="flex flex-col h-[calc(100vh-12rem)] border border-slate-200/80 dark:border-slate-800 shadow-lg">
       <CardHeader className="flex flex-row items-center gap-4 bg-slate-50/55 dark:bg-slate-900/30 border-b border-slate-100 dark:border-slate-800/80 py-4">
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accentBlue-100 text-accentBlue-600 dark:bg-accentBlue-950/30 dark:text-accentBlue-400">
           <Bot className="h-5 w-5" />
         </div>
         <div>
@@ -127,7 +127,7 @@ export default function PatientChatClient() {
               className={`flex items-center justify-center w-8 h-8 rounded-full shrink-0 ${
                 msg.role === "user"
                   ? "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-350"
-                  : "bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400"
+                  : "bg-accentBlue-100 text-accentBlue-600 dark:bg-accentBlue-950/40 dark:text-accentBlue-400"
               }`}
             >
               {msg.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
@@ -136,7 +136,7 @@ export default function PatientChatClient() {
             <div
               className={`p-3.5 rounded-2xl max-w-[75%] text-sm leading-relaxed shadow-sm ${
                 msg.role === "user"
-                  ? "bg-blue-600 text-white rounded-tr-none"
+                  ? "bg-accentBlue-600 text-white rounded-tr-none"
                   : "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-250 rounded-tl-none border border-slate-200/40 dark:border-slate-800/40"
               }`}
             >
@@ -147,11 +147,11 @@ export default function PatientChatClient() {
 
         {isLoading && (
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accentBlue-100 text-accentBlue-600 dark:bg-accentBlue-950/40 dark:text-accentBlue-400 shrink-0">
               <Bot className="h-4 w-4" />
             </div>
             <div className="p-3.5 rounded-2xl rounded-tl-none bg-slate-100 dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/40 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+              <Loader2 className="h-4 w-4 animate-spin text-accentBlue-600" />
               <span className="text-xs text-slate-500">AI is reading guidelines...</span>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function PatientChatClient() {
           <Button
             type="submit"
             size="icon"
-            className="bg-blue-600 hover:bg-blue-700 text-white shrink-0 shadow-md shadow-blue-500/10"
+            className="bg-accentBlue-600 hover:bg-accentBlue-700 text-white shrink-0 shadow-md shadow-accentBlue-500/10"
             disabled={isLoading || isRateLimited || !input.trim()}
           >
             <Send className="h-4 w-4" />

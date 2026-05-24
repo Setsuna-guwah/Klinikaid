@@ -241,7 +241,7 @@ export default function TriageModal({
           {selectedDept && (
             <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-lg border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-500 uppercase">Estimated Queue No</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded">
+              <span className="text-sm font-bold text-accentBlue-600 dark:text-accentBlue-400 bg-accentBlue-50 dark:bg-accentBlue-950/40 px-2 py-0.5 rounded">
                 {previewQueueNo}
               </span>
             </div>

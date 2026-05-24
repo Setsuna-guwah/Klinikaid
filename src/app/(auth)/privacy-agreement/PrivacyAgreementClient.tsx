@@ -60,15 +60,15 @@ export default function PrivacyAgreementClient() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12 sm:px-6 lg:px-8 overflow-y-auto">
+    <div className="relative min-h-screen flex items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8 overflow-y-auto">
       {/* Background clinical-theme decorative circles */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-[80px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/10 blur-[80px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/5 blur-[80px] pointer-events-none" />
 
       <div className="w-full max-w-2xl z-10 space-y-6 my-8">
         <div className="flex flex-col items-center space-y-2 text-center">
           {/* Clinical Brand Logo */}
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 mb-2">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-white shadow-lg shadow-primary/20 mb-2">
             <Activity className="h-6 w-6 stroke-[2.5]" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">KlinikAid</h1>
@@ -142,7 +142,7 @@ export default function PrivacyAgreementClient() {
                   checked={isCheckboxChecked}
                   onChange={(e) => setIsCheckboxChecked(e.target.checked)}
                   disabled={!hasScrolledToBottom}
-                  className="mt-1 h-4 w-4 rounded border-slate-350 text-blue-600 focus:ring-blue-500 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                  className="mt-1 h-4 w-4 rounded border-slate-350 text-accentBlue-600 focus:ring-accentBlue-500 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   required
                 />
                 <label 
@@ -164,7 +164,7 @@ export default function PrivacyAgreementClient() {
               <Button
                 type="submit"
                 disabled={!isCheckboxChecked || !hasScrolledToBottom || isPending}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md shadow-blue-500/10 transition-all duration-200"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium shadow-md shadow-primary/10 transition-all duration-200"
               >
                 {isPending ? (
                   <>

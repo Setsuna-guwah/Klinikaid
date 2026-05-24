@@ -93,7 +93,7 @@ export default function Sidebar({ user }: SidebarProps) {
     <aside className="flex flex-col w-64 h-screen border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 select-none">
       {/* Sidebar Header / Branding */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-200/60 dark:border-slate-800/60">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-600 text-white shadow-md shadow-blue-500/10">
+        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-white shadow-md shadow-primary/10">
           <Activity className="h-5 w-5 stroke-[2.5]" />
         </div>
         <div className="flex flex-col">
@@ -118,7 +118,7 @@ export default function Sidebar({ user }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
                 isActive
-                  ? "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400"
+                  ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-emerald-400"
                   : "text-slate-600 hover:text-slate-950 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50"
               )}
             >
@@ -126,7 +126,7 @@ export default function Sidebar({ user }: SidebarProps) {
                 className={cn(
                   "h-4 w-4 transition-transform group-hover:scale-105 duration-200",
                   isActive
-                    ? "text-blue-600 dark:text-blue-400"
+                    ? "text-primary dark:text-emerald-400"
                     : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
                 )}
               />

@@ -162,7 +162,7 @@ export default function NewPatientModal() {
 
             <DialogFooter>
               <DialogClose render={
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   Close Window
                 </Button>
               } />
@@ -301,7 +301,7 @@ export default function NewPatientModal() {
             <DialogFooter>
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium h-9 text-xs"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium h-9 text-xs"
                 disabled={isPending}
               >
                 {isPending ? (

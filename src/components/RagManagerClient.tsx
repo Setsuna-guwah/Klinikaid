@@ -220,7 +220,7 @@ export default function RagManagerClient({ initialDocuments }: RagManagerClientP
                         className={
                           doc.sourceType === "pdf"
                             ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30"
-                            : "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/30"
+                            : "bg-accentBlue-50 text-accentBlue-700 border-accentBlue-100 dark:bg-accentBlue-950/20 dark:text-accentBlue-400 dark:border-accentBlue-900/30"
                         }
                       >
                         {doc.sourceType.toUpperCase()}

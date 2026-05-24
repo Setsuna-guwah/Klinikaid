@@ -61,15 +61,15 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-12 sm:px-6 lg:px-8 overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background clinical-theme decorative circles */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-[80px]" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/10 blur-[80px]" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/5 blur-[80px]" />
 
       <div className="w-full max-w-md z-10 space-y-6">
         <div className="flex flex-col items-center space-y-2 text-center animate-fade-in">
           {/* Clinical Brand Logo */}
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 mb-2">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-white shadow-lg shadow-primary/20 mb-2">
             <Activity className="h-6 w-6 stroke-[2.5]" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -169,7 +169,7 @@ function LoginForm() {
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md shadow-blue-500/10 transition-all duration-200"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium shadow-md shadow-primary/10 transition-all duration-200"
                 disabled={isPending}
               >
                 {isPending ? (
@@ -187,7 +187,7 @@ function LoginForm() {
               {!mfaRequired && (
                 <div className="text-sm text-center text-slate-500 dark:text-slate-400 mt-2">
                   Don&apos;t have an account?{" "}
-                  <Link href="/register" className="text-blue-600 hover:underline">
+                  <Link href="/register" className="text-accentBlue-600 hover:underline">
                     Sign Up
                   </Link>
                 </div>
@@ -219,8 +219,8 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-accentBlue-600" />
       </div>
     }>
       <LoginForm />

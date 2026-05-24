@@ -50,7 +50,7 @@ export default function DashboardError({ error, reset }: ErrorBoundaryProps) {
         <CardFooter className="flex flex-col sm:flex-row gap-2 pt-2">
           <Button
             onClick={() => reset()}
-            className="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+            className="w-full sm:flex-1 bg-primary text-white hover:bg-primary/90 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
           >
             <RefreshCw className="h-4 w-4 animate-spin-reverse" />
             Try Again

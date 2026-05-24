@@ -42,7 +42,7 @@ function getEventBadgeClass(eventType: string) {
     return "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200/50";
   }
   if (type.includes("LOGIN") || type.includes("LOGOUT")) {
-    return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200/50";
+    return "bg-accentBlue-100 text-accentBlue-800 dark:bg-accentBlue-900/30 dark:text-accentBlue-400 border border-accentBlue-200/50";
   }
   return "bg-slate-100 text-slate-800 dark:bg-slate-800/60 dark:text-slate-300 border border-slate-200/50";
 }
@@ -168,7 +168,7 @@ export default async function AdminDashboardPage() {
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Today&apos;s Patients
             </span>
-            <Users className="h-4 w-4 text-blue-500" />
+            <Users className="h-4 w-4 text-accentBlue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900 dark:text-white">{todayPatients}</div>
@@ -232,7 +232,7 @@ export default async function AdminDashboardPage() {
         <Card className="col-span-4 border border-slate-200/80 dark:border-slate-800 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-              <Activity className="h-4 w-4 text-blue-600" />
+              <Activity className="h-4 w-4 text-accentBlue-600" />
               Department Workload
             </CardTitle>
             <CardDescription className="text-xs">

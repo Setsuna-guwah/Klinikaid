@@ -125,7 +125,7 @@ export default async function ReceptionDashboardPage() {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case "waiting":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+        return "bg-accentBlue-100 text-accentBlue-800 dark:bg-accentBlue-900/30 dark:text-accentBlue-400";
       case "in_progress":
         return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400";
       case "completed":
@@ -149,7 +149,7 @@ export default async function ReceptionDashboardPage() {
         <div className="flex items-center gap-3">
           <NewPatientModal />
           
-          <Link href="/reception/queue" className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors gap-1.5">
+          <Link href="/reception/queue" className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 transition-colors gap-1.5">
             Open Review Queue
             <ArrowRight className="h-4 w-4" />
           </Link>
@@ -164,7 +164,7 @@ export default async function ReceptionDashboardPage() {
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Active Queue List
             </span>
-            <UserCheck className="h-4 w-4 text-blue-500" />
+            <UserCheck className="h-4 w-4 text-accentBlue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-slate-900 dark:text-white">{activeQueueCount}</div>
@@ -212,7 +212,7 @@ export default async function ReceptionDashboardPage() {
         <Card className="lg:col-span-7 border border-slate-200/80 dark:border-slate-800 shadow-sm">
           <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/80">
             <CardTitle className="text-base font-bold text-slate-950 dark:text-white flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-blue-500" />
+              <ClipboardList className="h-5 w-5 text-accentBlue-500" />
               Receptionist Operational Guide
             </CardTitle>
             <CardDescription className="text-xs">
@@ -265,7 +265,7 @@ export default async function ReceptionDashboardPage() {
                         {entry.patient ? `${entry.patient.first_name} ${entry.patient.last_name}` : "Unknown Patient"}
                       </p>
                       <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium">
-                        <span className="uppercase text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.5 rounded font-mono">
+                        <span className="uppercase text-accentBlue-600 dark:text-accentBlue-400 bg-accentBlue-50 dark:bg-accentBlue-950/30 px-1.5 py-0.5 rounded font-mono">
                           {getQueueNumber(entry.triage_notes)}
                         </span>
                         <span className="capitalize">{entry.department}</span>
