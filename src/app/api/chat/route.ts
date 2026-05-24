@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import crypto from "crypto";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const userQuery = lastMessage.content;
-    const activeSessionId = sessionId || "session_default";
+    const activeSessionId = sessionId || crypto.randomUUID();
 
     // 2. Enforce Rate Limit: Max 20 requests per hour keyed off authenticated user.id (prevents sessionId bypasses)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
