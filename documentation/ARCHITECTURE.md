@@ -5,7 +5,7 @@ This document provides a detailed breakdown of the architectural concepts, folde
 
 ---
 
-## 📂 Route Group Separation
+## Route Group Separation
 
 Next.js routing in `src/app/` is divided into two primary route groups to isolate layouts and access patterns:
 
@@ -19,7 +19,7 @@ Next.js routing in `src/app/` is divided into two primary route groups to isolat
 
 ---
 
-## 🔒 Layout-Level Role Gate (RBAC)
+## Layout-Level Role Gate (RBAC)
 
 KlinikAid implements a **fail-closed layout-level role gate** to protect dashboard routes. It works in tandem with Next.js Middleware:
 
@@ -65,7 +65,7 @@ sequenceDiagram
 
 ---
 
-## 🧩 Server vs. Client Component Split
+## Server vs. Client Component Split
 
 KlinikAid strictly enforces the separation of server data fetching and client-side interactivity (**Standing Rule #7**):
 
@@ -81,7 +81,7 @@ KlinikAid strictly enforces the separation of server data fetching and client-si
 
 ---
 
-## ⚡ Server Actions vs. API Routes
+## Server Actions vs. API Routes
 
 Communication between the browser and the backend is separated based on the target client:
 
@@ -97,7 +97,7 @@ Communication between the browser and the backend is separated based on the targ
 
 ---
 
-## 📁 Shared Utilities & Library Structure
+## Shared Utilities & Library Structure
 
 Global logic is stored under `src/lib/` to avoid redundancy:
 
@@ -113,7 +113,7 @@ Global logic is stored under `src/lib/` to avoid redundancy:
 
 ---
 
-## 🤖 RAG / Chatbot Execution Pipeline
+## RAG / Chatbot Execution Pipeline
 
 The AI chatbot endpoint at `/api/chat` coordinates RAG grounding and Gemini interactions:
 
@@ -126,7 +126,7 @@ The AI chatbot endpoint at `/api/chat` coordinates RAG grounding and Gemini inte
 
 ---
 
-## 📂 Supabase Private Storage Bucket
+## Supabase Private Storage Bucket
 
 Patient uploads are stored securely in a private Supabase Storage bucket named `patient-documents`:
 

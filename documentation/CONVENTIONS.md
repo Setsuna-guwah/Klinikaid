@@ -5,7 +5,7 @@ This document outlines the coding regulations and standards that developers must
 
 ---
 
-## 📋 The Eleven Standing Code Rules
+## The Eleven Standing Code Rules
 
 All feature development and refactoring passes must adhere to these eleven foundational coding rules:
 
@@ -34,7 +34,7 @@ All feature development and refactoring passes must adhere to these eleven found
 
 ---
 
-## 🏷 Naming & Folder Conventions
+## Naming & Folder Conventions
 
 - **Route folders**: Lowercase, grouped under `(auth)` or `(dashboard)`.
 - **Server views (`page.tsx`)**: Renders server-side gates and fetches props.
@@ -44,7 +44,7 @@ All feature development and refactoring passes must adhere to these eleven found
 
 ---
 
-## ⚠️ Known System Limitations
+## Known System Limitations
 
 Developers must keep these documented limitations in mind:
 

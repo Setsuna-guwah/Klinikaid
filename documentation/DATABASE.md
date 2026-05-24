@@ -5,7 +5,7 @@ This document serves as the authoritative schema guide for the KlinikAid Supabas
 
 ---
 
-## 📊 Database Tables
+## Database Tables
 
 KlinikAid uses 8 primary tables to manage application state:
 
@@ -132,7 +132,7 @@ KlinikAid uses 8 primary tables to manage application state:
 
 ---
 
-## 🛠 Migration History
+## Migration History
 
 The schema has evolved through four key migrations under `src/lib/db/`:
 
@@ -147,7 +147,7 @@ The schema has evolved through four key migrations under `src/lib/db/`:
 
 ---
 
-## ⚙ RPCs and Trigger Functions
+## RPCs and Trigger Functions
 
 ### `public.handle_new_user()`
 - **Type**: `TRIGGER` (AFTER INSERT on `auth.users`)
@@ -174,7 +174,7 @@ The schema has evolved through four key migrations under `src/lib/db/`:
 
 ---
 
-## ⚠️ Important Enumerated Values
+## Important Enumerated Values
 
 Devs must use these exact values to prevent database inserts from failing the constraints:
 

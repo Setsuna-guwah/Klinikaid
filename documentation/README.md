@@ -6,17 +6,17 @@ KlinikAid is a multi-role internal clinic management web portal built for **Bloo
 
 ---
 
-## 📖 Table of Contents
-1. [Tech Stack](#-tech-stack)
-2. [Prerequisites](#-prerequisites)
-3. [Quick Start](#-quick-start)
-4. [Environment Variables Reference](#-environment-variables-reference)
-5. [Running the Production Build](#-running-the-production-build)
-6. [Developer Guides](#-developer-guides)
+## Table of Contents
+1. [Tech Stack](#tech-stack)
+2. [Prerequisites](#prerequisites)
+3. [Quick Start](#quick-start)
+4. [Environment Variables Reference](#environment-variables-reference)
+5. [Running the Production Build](#running-the-production-build)
+6. [Developer Guides](#developer-guides)
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Tool / Technology | Purpose / Notes |
 | :--- | :--- | :--- |
@@ -36,7 +36,7 @@ KlinikAid is a multi-role internal clinic management web portal built for **Bloo
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before setting up the project, make sure your machine has the following tools installed:
 - **Node.js**: `v18.x` or `v20.x` (LTS versions recommended)
@@ -45,7 +45,7 @@ Before setting up the project, make sure your machine has the following tools in
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 Follow these steps to run a local instance of the KlinikAid portal:
 
@@ -82,7 +82,7 @@ Open your browser and navigate to `http://localhost:3000`.
 
 ---
 
-## 🔑 Environment Variables Reference
+## Environment Variables Reference
 
 The portal relies on the following configurations in `.env.local`. Do **never** commit actual secret values to version control.
 
@@ -100,7 +100,7 @@ The portal relies on the following configurations in `.env.local`. Do **never** 
 
 ---
 
-## 📦 Running the Production Build
+## Running the Production Build
 
 To build and run the application in a production-ready container or deployment node, execute:
 
@@ -114,7 +114,7 @@ npm run start
 
 ---
 
-## 📚 Developer Guides
+## Developer Guides
 
 To understand specific modules and standards of the KlinikAid project, review the following documents:
 

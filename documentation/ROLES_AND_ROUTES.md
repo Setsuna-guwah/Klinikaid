@@ -5,7 +5,7 @@ This document defines how roles access subpaths in the KlinikAid web portal, and
 
 ---
 
-## 🗺 Role-to-Route Mapping
+## Role-to-Route Mapping
 
 KlinikAid uses Next.js route folders and layouts to partition role access. The role gate in `(dashboard)/layout.tsx` enforces the following boundaries:
 
@@ -21,7 +21,7 @@ KlinikAid uses Next.js route folders and layouts to partition role access. The r
 
 ---
 
-## 📈 System Event Types (`SYSTEM_EVENT_TYPES`)
+## System Event Types (`SYSTEM_EVENT_TYPES`)
 
 Audit logging is structured type-safely. Developers must import events from `src/lib/constants.ts` (never write raw strings). The table below lists the 19 registered event types and the operations that emit them:
 
