@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const userQuery = lastMessage.content;
     const activeSessionId = sessionId || "session_default";
     
-    // 2. Enforce Rate Limit: Max 20 requests per hour
+    // 2. Enforce Rate Limit: Max 20 requests per hour keyed off authenticated user.id (prevents sessionId bypasses)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count, error: countError } = await supabase
       .from("chatbot_logs")

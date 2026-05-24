@@ -21,6 +21,16 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { 
+  AlertDialog, 
+  AlertDialogContent, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogCancel, 
+  AlertDialogAction 
+} from "@/components/ui/alert-dialog";
 import { formatPhTimeFull } from "@/lib/utils";
 import { Document, PatientQueue } from "@/types";
 
@@ -42,6 +52,8 @@ export default function SubmissionsClient({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewingFileId, setViewingFileId] = useState<string | null>(null);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteName, setConfirmDeleteName] = useState<string>("");
 
   // Sync state if props change (e.g. from server action revalidation)
   useEffect(() => {
@@ -148,9 +160,14 @@ export default function SubmissionsClient({
   };
 
   const handleDelete = async (docId: string, fileName: string) => {
-    if (!confirm(`Are you sure you want to cancel the submission of "${fileName}"? This cannot be undone.`)) {
-      return;
-    }
+    setConfirmDeleteId(docId);
+    setConfirmDeleteName(fileName);
+  };
+
+  const executeDelete = async () => {
+    if (!confirmDeleteId) return;
+    const docId = confirmDeleteId;
+    setConfirmDeleteId(null);
     setDeletingFileId(docId);
     try {
       const res = await deletePendingDocumentAction(docId);
@@ -447,6 +464,26 @@ export default function SubmissionsClient({
           </Card>
         </div>
       </div>
+      {/* Cancellation Confirmation Dialog */}
+      <AlertDialog open={confirmDeleteId !== null} onOpenChange={(open) => { if (!open) setConfirmDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Submission?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel the submission of &ldquo;{confirmDeleteName}&rdquo;? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={executeDelete}
+            >
+              Cancel Submission
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

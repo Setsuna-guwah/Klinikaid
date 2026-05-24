@@ -23,6 +23,7 @@ export default function PatientChatClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRateLimited, setIsRateLimited] = useState(false);
+  const [rateLimitedUntil, setRateLimitedUntil] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -31,6 +32,18 @@ export default function PatientChatClient() {
     // Generate simple random session ID on client mount
     setSessionId(`sess_${Math.random().toString(36).substring(2, 11)}`);
   }, []);
+
+  useEffect(() => {
+    if (!rateLimitedUntil) return;
+    const interval = setInterval(() => {
+      if (Date.now() >= rateLimitedUntil) {
+        setIsRateLimited(false);
+        setRateLimitedUntil(null);
+        setError(null);
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [rateLimitedUntil]);
 
   useEffect(() => {
     // Scroll to bottom on message updates
@@ -66,9 +79,8 @@ export default function PatientChatClient() {
 
       if (response.status === 429) {
         setIsRateLimited(true);
-        const data = await response.json();
-        setError(data.message || "Rate limit exceeded. You can only send up to 20 messages per hour.");
-        setIsLoading(false);
+        setRateLimitedUntil(Date.now() + 60 * 60 * 1000); // 1 hour from now
+        setError("Inquiry limit reached. You have sent the maximum of 20 messages this hour. Please try again in approximately 1 hour.");
         return;
       }
 
