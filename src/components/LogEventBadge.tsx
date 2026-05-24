@@ -22,6 +22,8 @@ const EVENT_BADGE_STYLES: Record<string, { bg: string; text: string; border: str
   RAG_DOCUMENT_DELETED:   { bg: '#fdf2f8', text: '#9d174d', border: '#fbcfe8', label: 'RAG Deleted' },
   ACCESS_DENIED:          { bg: '#450a0a', text: '#fecaca', border: '#7f1d1d', label: 'Access Denied' },
   EXPORT_SYSTEM_LOGS:     { bg: '#f0f9ff', text: '#0c4a6e', border: '#7dd3fc', label: 'Logs Exported' },
+  STAFF_ACTION_FAILED:    { bg: '#fef2f2', text: '#991b1b', border: '#fee2e2', label: 'Staff Action Failed' },
+  DOCUMENT_SUBMITTED:     { bg: '#ccfbf1', text: '#134e4a', border: '#5eead4', label: 'Doc Submitted' },
 };
 
 const DEFAULT_BADGE_STYLE = { bg: '#f3f4f6', text: '#374151', border: '#d1d5db', label: 'Unknown Event' };

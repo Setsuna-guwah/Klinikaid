@@ -1,30 +1,70 @@
 import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Search } from "lucide-react";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import SubmissionsClient from "./SubmissionsClient";
+import { Document, PatientQueue } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-export default function PatientSubmissionsPage() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Track Submission</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Monitor validation status and department assignment of your documents</p>
+export default async function PatientSubmissionsPage() {
+  const supabase = createClient();
+
+  // 1. Get current authenticated user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // 2. Fetch patient record linked via profile_id
+  const { data: patient, error: patientError } = await supabase
+    .from("patients")
+    .select("id")
+    .eq("profile_id", user.id)
+    .single();
+
+  if (patientError || !patient) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/20 border-red-200/60 dark:border-red-900/50">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Profile Configuration Error</AlertTitle>
+          <AlertDescription>
+            We could not retrieve your patient record. Please contact clinic staff to link your authentication account.
+          </AlertDescription>
+        </Alert>
       </div>
-      <Card className="border border-slate-200/80 dark:border-slate-800 shadow-md">
-        <CardHeader className="flex flex-row items-center gap-4 bg-slate-50/55 dark:bg-slate-900/30 pb-4">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400">
-            <Search className="h-5 w-5" />
-          </div>
-          <div>
-            <CardTitle>My Uploaded Documents</CardTitle>
-            <CardDescription>Real-time submission pipeline updates</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <p className="text-sm text-slate-500 dark:text-slate-400 italic">No document history found. Complete implementation in Phase 9.</p>
-        </CardContent>
-      </Card>
+    );
+  }
+
+  // 3. Fetch documents and queue in parallel
+  const [docsResult, queueResult] = await Promise.all([
+    supabase
+      .from("documents")
+      .select("*")
+      .eq("patient_id", patient.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("patient_queue")
+      .select("*")
+      .eq("patient_id", patient.id)
+      .order("created_at", { ascending: false })
+  ]);
+
+  const documents = (docsResult.data || []) as Document[];
+  const queue = (queueResult.data || []) as PatientQueue[];
+
+  return (
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <SubmissionsClient 
+        initialDocuments={documents} 
+        initialQueue={queue} 
+        patientId={patient.id} 
+      />
     </div>
   );
 }

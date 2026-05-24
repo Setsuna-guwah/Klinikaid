@@ -1,30 +1,60 @@
 import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { FileText } from "lucide-react";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import PatientResultsClient from "./PatientResultsClient";
+import { DepartmentRecord } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-export default function PatientResultsPage() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">My Results</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">View diagnostic reports and laboratory data releases</p>
+export default async function PatientResultsPage() {
+  const supabase = createClient();
+
+  // 1. Get current authenticated user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // 2. Fetch patient record linked via profile_id
+  const { data: patient, error: patientError } = await supabase
+    .from("patients")
+    .select("id")
+    .eq("profile_id", user.id)
+    .single();
+
+  if (patientError || !patient) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/20 border-red-200/60 dark:border-red-900/50">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Profile Configuration Error</AlertTitle>
+          <AlertDescription>
+            We could not retrieve your patient record. Please contact clinic staff to link your authentication account.
+          </AlertDescription>
+        </Alert>
       </div>
-      <Card className="border border-slate-200/80 dark:border-slate-800 shadow-md">
-        <CardHeader className="flex flex-row items-center gap-4 bg-slate-50/55 dark:bg-slate-900/30 pb-4">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400">
-            <FileText className="h-5 w-5" />
-          </div>
-          <div>
-            <CardTitle>Medical Laboratory Sheets</CardTitle>
-            <CardDescription>Officially released diagnostic documents</CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <p className="text-sm text-slate-500 dark:text-slate-400 italic">No medical records released yet. Complete implementation in Phase 9.</p>
-        </CardContent>
-      </Card>
+    );
+  }
+
+  // 3. Fetch released department records for this patient
+  const { data: records, error: recordsError } = await supabase
+    .from("department_records")
+    .select("*")
+    .eq("patient_id", patient.id)
+    .order("created_at", { ascending: false });
+
+  if (recordsError) {
+    console.error("[PatientResultsPage] Error fetching department records:", recordsError);
+  }
+
+  return (
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <PatientResultsClient initialRecords={(records || []) as DepartmentRecord[]} />
     </div>
   );
 }
