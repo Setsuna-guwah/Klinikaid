@@ -106,7 +106,7 @@ export default function NewPatientModal() {
     <Dialog open={open} onOpenChange={(val) => {
       setOpen(val);
       if (!val) resetForm();
-    }}>
+    }} disablePointerDismissal={true}>
       <DialogTrigger render={
         <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium gap-1.5 shadow-sm">
           <UserPlus className="h-4 w-4" />
@@ -114,7 +114,9 @@ export default function NewPatientModal() {
         </Button>
       } />
       
-      <DialogContent className="sm:max-w-md max-w-lg">
+      <DialogContent 
+        className="sm:max-w-md max-w-lg"
+      >
         <DialogHeader>
           <DialogTitle>Register New Patient</DialogTitle>
           <DialogDescription>

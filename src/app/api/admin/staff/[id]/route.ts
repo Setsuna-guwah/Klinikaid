@@ -19,6 +19,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       return errorResponse("Missing required fields: email, fullName, role", 400);
     }
 
+    if (role === "department_staff" && (!department || department === null)) {
+      return errorResponse("Clinical department is required for Department Staff.", 400);
+    }
+
     const adminClient = createAdminClient();
     const supabase = createClient();
 

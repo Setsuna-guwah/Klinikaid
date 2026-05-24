@@ -31,7 +31,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   // 2. Fetch profile and status
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, role, department, full_name, is_active")
+    .select("id, role, department, full_name, is_active, accepted_privacy_at")
     .eq("id", user.id)
     .single();
 
@@ -45,6 +45,11 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
   if (!profile.is_active) {
     await supabase.auth.signOut();
     redirect("/login?error=account_deactivated");
+  }
+
+  // 3.5 Enforce Data Privacy Agreement gate (Republic Act 10173) for patients
+  if (profile.role === "patient" && !profile.accepted_privacy_at) {
+    redirect("/privacy-agreement");
   }
 
   // 4. Handle access denial logging and redirection (Revision B)

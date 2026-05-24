@@ -59,6 +59,10 @@ export async function POST(request: Request) {
       return errorResponse("Missing required fields: email, password, fullName, role", 400);
     }
 
+    if (role === "department_staff" && (!department || department === null)) {
+      return errorResponse("Clinical department is required for Department Staff.", 400);
+    }
+
     const adminClient = createAdminClient();
 
     // 1. Create auth user with metadata (trigger will auto-create profile and registration log)

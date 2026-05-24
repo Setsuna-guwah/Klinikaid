@@ -33,7 +33,23 @@ const staffFormSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters").or(z.string().length(0)), // optional on edit
   role: z.enum(["admin", "receptionist", "department_staff", "medical_specialist"]),
   department: z.enum(["laboratory", "imaging", "ultrasound", "ecg"]).nullable().optional(),
+}).superRefine((data, ctx) => {
+  if (data.role === "department_staff" && (!data.department || data.department === null)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Clinical department is required for Department Staff",
+      path: ["department"],
+    });
+  }
 });
+
+const ROLE_COLORS: Record<UserRole, string> = {
+  admin: "bg-red-500 text-white dark:bg-red-600",
+  receptionist: "bg-blue-500 text-white dark:bg-blue-600",
+  department_staff: "bg-purple-500 text-white dark:bg-purple-600",
+  medical_specialist: "bg-indigo-500 text-white dark:bg-indigo-600",
+  patient: "bg-green-500 text-white dark:bg-green-600",
+};
 
 type StaffFormValues = z.infer<typeof staffFormSchema>;
 
@@ -309,7 +325,7 @@ export default function StaffManagementPage() {
                       
                       {/* Role Badge */}
                       <TableCell>
-                        <Badge className={`text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 ${roleConfig?.color || "bg-slate-200 text-slate-800"}`}>
+                        <Badge className={`text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 ${ROLE_COLORS[staff.role] || "bg-slate-200 text-slate-800"}`}>
                           {roleConfig?.label || staff.role}
                         </Badge>
                       </TableCell>
@@ -363,8 +379,7 @@ export default function StaffManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Creation / Editing Sheet (Drawer) */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen} disablePointerDismissal={true}>
         <SheetContent className="sm:max-w-md bg-white dark:bg-slate-900 overflow-y-auto">
           <SheetHeader className="pb-6 border-b border-slate-100 dark:border-slate-800">
             <SheetTitle>{editingStaff ? "Edit Staff Details" : "Add Staff Account"}</SheetTitle>
